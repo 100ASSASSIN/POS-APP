@@ -13,6 +13,39 @@ const AuthLogin = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // --- Input Validations ---
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      return;
+    }
+
+    if (password.length > 20) {
+      toast.error("Password cannot exceed 20 characters.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -97,7 +130,6 @@ const AuthLogin = () => {
         </Button>
       </form>
 
-      {/* ToastContainer must be included once in your app */}
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -111,11 +143,10 @@ const AuthLogin = () => {
         theme="light"
         transition={Bounce}
       />
+
       <div className="font-light text-primary text-xs text-center break-words">
         &copy; Powered by Austronix Unity Enterprises Pvt. Ltd.
       </div>
-
-
     </>
   );
 };
