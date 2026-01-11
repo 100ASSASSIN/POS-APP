@@ -62,7 +62,7 @@ const AuthLogin = () => {
       await refreshUser();
 
       // Show success toast
-      toast.success("Login successful!", {
+      toast.success("successful!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,

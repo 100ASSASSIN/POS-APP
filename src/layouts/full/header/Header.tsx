@@ -1,15 +1,17 @@
 
 import { useState, useEffect } from "react";
-import {  Button, Navbar } from "flowbite-react";
+import { Button, Navbar } from "flowbite-react";
 import { Icon } from "@iconify/react";
 import Profile from "./Profile";
-import Notification from "./notification";
+// import Notification from "./notification";
 import { Drawer } from "flowbite-react";
 import MobileSidebar from "../sidebar/MobileSidebar";
 import { Link } from "react-router";
+import { useAuth } from "../../../context/AuthContext";
 
 
 const Header = () => {
+  const { user } = useAuth();
   const [isSticky, setIsSticky] = useState(false);
 
   useEffect(() => {
@@ -35,8 +37,8 @@ const Header = () => {
     <>
       <header
         className={`sticky top-0 z-[5] ${isSticky
-            ? "bg-white dark:bg-dark fixed w-full"
-            : "bg-white"
+          ? "bg-white dark:bg-dark fixed w-full"
+          : "bg-white"
           }`}
       >
         <Navbar
@@ -58,8 +60,22 @@ const Header = () => {
 
             <div className="flex gap-4 items-center">
               {/* <Button as={Link} target="_blank" to="https://adminmart.com/product/matdash-tailwind-react-admin-template/?ref=56#product-demo-section" size={'sm'} color={"primary"} className="rounded-md py-1 px-3">
-                Check Pro Template
+                {user.role}
               </Button> */}
+              {/* User Info */}
+              <div className="px-3 py-3  flex flex-col items-start gap-1">
+                <p className="font-semibold text-gray-800">{user?.name}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="relative flex h-3 w-3">
+                    {/* Ping animation */}
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping"></span>
+                    {/* Solid dot */}
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
+                  </span>
+                  <p className="text-gray-500 text-xs font-semibold">{user?.role?.toUpperCase()}</p>
+                </div>
+              </div>
+
               <Profile />
             </div>
           </div>

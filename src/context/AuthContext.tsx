@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Compute authentication status
   const isAuthenticated = !!user;
 
+
   // Show loading screen while checking session
   if (loading) {
     return (

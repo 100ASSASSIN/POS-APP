@@ -288,7 +288,7 @@ const HomePage = () => {
   };
 
   const handleProcessPayment = () => {
-    alert(`Processing payment of $${total.toFixed(2)}`);
+    // alert(`Processing payment of $${total.toFixed(2)}`);
     // Payment processing logic
   };
 
