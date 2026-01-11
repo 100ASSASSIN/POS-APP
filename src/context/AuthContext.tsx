@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-16 h-16 border-4 border-primary border-dashed rounded-full animate-spin mb-6"></div>
         <h1 className="text-2xl font-semibold text-gray-800 mb-2">
-          Checking session...
+          Loading...
         </h1>
         <p className="text-gray-500 text-sm">
           Please wait while we verify your account and load your dashboard.

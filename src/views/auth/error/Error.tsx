@@ -1,6 +1,6 @@
 
 import { Link } from "react-router";
-import ErrorImg from "/src/assets/images/backgrounds/errorimg.svg";
+import ErrorImg from "/src/assets/images/backgrounds/error.svg";
 import { Button } from "flowbite-react";
 const Error = () => {
   return (

@@ -1,88 +1,78 @@
-import { lazy } from 'react';
-import { Navigate, createBrowserRouter } from "react-router";
-import ProtectedRoute from './ProtectedRoute'; // adjust path
+import { lazy } from "react";
+import { Navigate, createBrowserRouter } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
+import RoleGuard from "./RoleGuard";
 
-/* ***Layouts**** */
-const FullLayout = lazy(() => import('../layouts/full/FullLayout'));
-const BlankLayout = lazy(() => import('../layouts/blank/BlankLayout'));
+/* Layouts */
+const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
+const BlankLayout = lazy(() => import("../layouts/blank/BlankLayout"));
 
-// Dashboard
-const Dashboard = lazy(() => import('../views/dashboards/Dashboard'));
-
-// utilities
-const Typography = lazy(() => import("../views/typography/Typography"));
-const Table = lazy(() => import("../views/tables/Table"));
-const Form = lazy(() => import("../views/forms/Form"));
-const Shadow = lazy(() => import("../views/shadows/Shadow"));
-const Alert = lazy(() => import("../views/alerts/Alerts"));
-
-// icons
-const Solar = lazy(() => import("../views/icons/Solar"));
-
-// authentication
-const Login = lazy(() => import('../views/auth/login/Login'));
-const Register = lazy(() => import('../views/auth/register/Register'));
-const SamplePage = lazy(() => import('../views/sample-page/SamplePage'));
-const Error = lazy(() => import('../views/auth/error/Error'));
+/* Pages */
+const Dashboard = lazy(() => import("../views/dashboards/Dashboard"));
+const RootPath = lazy(() => import("../views/Rootpath"));
+const Login = lazy(() => import("../views/auth/login/Login"));
+const Error = lazy(() => import("../views/auth/error/Error"));
 
 const Router = [
   {
-    path: '/',
+    path: "/",
     element: <FullLayout />,
     children: [
-            {
-        path: '/',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-          </ProtectedRoute>
-        ),
-      },
       {
-        path: '/cashier',
-        exact: true,
+        index: true,
         element: (
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        ),
-      },
-        {
-        path: '/admin',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        ),
-      },
-              {
-        path: '/manager',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <Dashboard />
+            <RootPath />
           </ProtectedRoute>
         ),
       },
 
-      { path: '*', element: <Navigate to="/auth/404" /> },
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["admin"]}>
+              <Dashboard />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "manager",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["admin", "manager"]}>
+              <Dashboard />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "cashier",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["cashier"]}>
+              <Dashboard />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+      { path: "*", element: <Navigate to="/auth/404" replace /> },
     ],
   },
+
   {
-    path: '/',
+    path: "/",
     element: <BlankLayout />,
     children: [
-      { path: '/auth/login', element: <Login /> },
-      // { path: '/auth/register', element: <Register /> },
-      { path: '/auth/404', element: <Error /> },
-      { path: '404', element: <Error /> },
-      { path: '*', element: <Navigate to="/auth/404" /> },
+      { path: "auth/login", element: <Login /> },
+      { path: "auth/404", element: <Error /> },
+      { path: "*", element: <Navigate to="/auth/404" replace /> },
     ],
   },
 ];
 
-
-const router = createBrowserRouter(Router)
-
-export default router;
+export default createBrowserRouter(Router);
