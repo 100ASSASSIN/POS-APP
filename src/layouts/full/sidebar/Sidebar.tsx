@@ -6,6 +6,7 @@ import React from "react";
 import FullLogo from "../shared/logo/FullLogo";
 import NavCollapse from "./NavCollapse";
 import { useSidebarMenu } from "../../../context/SidebarMenuContext";
+import { Icon } from '@iconify/react';
 
 interface SidebarChild {
   id: number | string;
@@ -53,7 +54,7 @@ const SidebarLayout = () => {
                       ) : (
                         <NavItems item={child} />
                       )}
-                    </React.Fragment>
+                    </React.Fragment> 
                   ))}
                 </div>
               ))}

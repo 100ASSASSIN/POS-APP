@@ -12,13 +12,14 @@ const AuthLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, refreshUser } = useAuth();
+  const { user, isAuthenticated, refreshUser } = useAuth();
 
-    useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+useEffect(() => {
+  if (isAuthenticated && user?.default_role_route) {
+    navigate(user.default_role_route, { replace: true });
+  }
+}, [isAuthenticated, user, navigate]);
+
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -74,7 +75,7 @@ const AuthLogin = () => {
       });
 
       // Navigate to dashboard
-      navigate("/", { replace: true });
+      navigate(user.default_role_route, { replace: true });
     } catch (err: any) {
       console.error(err);
       const errorMessage =
