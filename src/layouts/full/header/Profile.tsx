@@ -14,7 +14,7 @@ const Profile = () => {
     try {
       await api.post("/logout", {}, { withCredentials: true });
       refreshUser(); // refresh context
-      navigate("/", { replace: true }); // redirect to login
+      navigate(user.default_role_route, { replace: true }); // redirect to login
     } catch (err: any) {
       console.error("Logout failed:", err);
       // alert(err.response?.data?.message || "Logout failed. Try again.");

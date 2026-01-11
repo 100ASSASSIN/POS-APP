@@ -30,8 +30,16 @@ const Router = [
     path: '/',
     element: <FullLayout />,
     children: [
-      {
+            {
         path: '/',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/cashier',
         exact: true,
         element: (
           <ProtectedRoute>
@@ -39,69 +47,25 @@ const Router = [
           </ProtectedRoute>
         ),
       },
-      {
-        path: '/ui/typography',
+        {
+        path: '/admin',
         exact: true,
         element: (
           <ProtectedRoute>
-            <Typography />
+            <Dashboard />
           </ProtectedRoute>
         ),
       },
-      {
-        path: '/ui/table',
+              {
+        path: '/manager',
         exact: true,
         element: (
           <ProtectedRoute>
-            <Table />
+            <Dashboard />
           </ProtectedRoute>
         ),
       },
-      {
-        path: '/ui/form',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <Form />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/ui/alert',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <Alert />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/ui/shadow',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <Shadow />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/icons/solar',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <Solar />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/sample-page',
-        exact: true,
-        element: (
-          <ProtectedRoute>
-            <SamplePage />
-          </ProtectedRoute>
-        ),
-      },
+
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],
   },
