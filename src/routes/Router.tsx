@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { Navigate, createBrowserRouter } from "react-router";
+import ProtectedRoute from './ProtectedRoute'; // adjust path
 
 /* ***Layouts**** */
 const FullLayout = lazy(() => import('../layouts/full/FullLayout'));
@@ -29,14 +30,78 @@ const Router = [
     path: '/',
     element: <FullLayout />,
     children: [
-      { path: '/', exact: true, element: <Dashboard /> },
-      { path: '/ui/typography', exact: true, element: <Typography /> },
-      { path: '/ui/table', exact: true, element: <Table /> },
-      { path: '/ui/form', exact: true, element: <Form /> },
-      { path: '/ui/alert', exact: true, element: <Alert /> },
-      { path: '/ui/shadow', exact: true, element: <Shadow /> },
-      { path: '/icons/solar', exact: true, element: <Solar /> },
-      { path: '/sample-page', exact: true, element: <SamplePage /> },
+      {
+        path: '/',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/ui/typography',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Typography />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/ui/table',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Table />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/ui/form',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Form />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/ui/alert',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Alert />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/ui/shadow',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Shadow />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/icons/solar',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <Solar />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/sample-page',
+        exact: true,
+        element: (
+          <ProtectedRoute>
+            <SamplePage />
+          </ProtectedRoute>
+        ),
+      },
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],
   },
@@ -45,14 +110,14 @@ const Router = [
     element: <BlankLayout />,
     children: [
       { path: '/auth/login', element: <Login /> },
-      { path: '/auth/register', element: <Register /> },
-      { path: '404', element: <Error /> },
+      // { path: '/auth/register', element: <Register /> },
       { path: '/auth/404', element: <Error /> },
+      { path: '404', element: <Error /> },
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],
-  }
-  ,
+  },
 ];
+
 
 const router = createBrowserRouter(Router)
 

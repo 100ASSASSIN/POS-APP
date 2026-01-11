@@ -1,15 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { Button, Label, TextInput } from "flowbite-react";
 import { useNavigate } from "react-router";
 import api from "../../../utils/services/axios";
 import { ToastContainer, toast, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../../../context/AuthContext";
+
 
 const AuthLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated, refreshUser } = useAuth();
+
+    useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -24,7 +33,6 @@ const AuthLogin = () => {
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: "light",
         transition: Bounce,
       });
@@ -39,7 +47,6 @@ const AuthLogin = () => {
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: "light",
         transition: Bounce,
       });
@@ -49,7 +56,10 @@ const AuthLogin = () => {
     setLoading(true);
 
     try {
-      const response = await api.post("/login", { email, password });
+      const response = await api.post("/login", { email, password }, { withCredentials: true });
+
+      // Immediately refresh user context
+      await refreshUser();
 
       // Show success toast
       toast.success("Login successful!", {
@@ -59,15 +69,12 @@ const AuthLogin = () => {
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: "light",
         transition: Bounce,
       });
 
-      // Redirect after a short delay to allow toast to show
-      setTimeout(() => {
-        navigate("/");
-      }, 500);
+      // Navigate to dashboard
+      navigate("/", { replace: true });
     } catch (err: any) {
       console.error(err);
       const errorMessage =
@@ -81,7 +88,6 @@ const AuthLogin = () => {
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: "light",
         transition: Bounce,
       });
@@ -89,7 +95,6 @@ const AuthLogin = () => {
       setLoading(false);
     }
   };
-
   return (
     <>
       <form onSubmit={handleSubmit} className="max-w-lg bg-white p-2">
