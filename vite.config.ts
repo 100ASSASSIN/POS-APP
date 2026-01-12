@@ -4,7 +4,6 @@ import { resolve } from 'path';
 import fs from 'fs/promises';
 import svgr from '@svgr/rollup';
 
-// https://vitejs.dev/config/
 export default defineConfig({
     resolve: {
         alias: {
@@ -21,10 +20,10 @@ export default defineConfig({
             plugins: [
                 {
                     name: 'load-js-files-as-tsx',
-                    setup(build) {
+                    setup(build: any) {
                         build.onLoad(
                             { filter: /src\\.*\.js$/ },
-                            async (args) => ({
+                            async (args: any) => ({
                                 loader: 'tsx',
                                 contents: await fs.readFile(args.path, 'utf8'),
                             })
@@ -34,12 +33,15 @@ export default defineConfig({
             ],
         },
     },
-
-
-    
-    // plugins: [react(),svgr({
-    //   exportAsDefault: true
-    // })],
-
     plugins: [svgr(), react()],
+    server: {
+        proxy: {
+            '/api': {
+                target: 'https://www.austrounity.in',
+                changeOrigin: true,
+                secure: true,
+                rewrite: (path) => path.replace(/^\/api/, '/api'),
+            },
+        },
+    },
 });
