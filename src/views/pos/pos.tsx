@@ -31,10 +31,10 @@ import {
   CheckCircle,
   Building,
   MapPin,
-  CreditCard,
+  // CreditCard,
   ArrowRight,
   Download,
-  Printer
+  // Printer
 } from 'lucide-react';
 import api from '../../utils/services/axios';
 import jsPDF from 'jspdf';
@@ -149,6 +149,8 @@ const PosApp = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [orderId, setOrderId] = useState<number | null>(null);
+
+  console.log(orderId);
 
   // Bill reference
   const [billNumber, setBillNumber] = useState('');

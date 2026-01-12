@@ -23,7 +23,7 @@ import api from '../../utils/services/axios';
 import { useAuth } from "../../context/AuthContext";
 import { ToastContainer, toast, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { AxiosError } from "axios";
 
 interface Employee {
   id: number;
@@ -209,19 +209,19 @@ const Employees = () => {
 const handleAddEmployee = async () => {
   try {
     const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('email', formData.email);
-    formDataToSend.append('password', formData.password);
-    formDataToSend.append('role', formData.role);
-    formDataToSend.append('status', formData.status ? '1' : '0');
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("password", formData.password);
+    formDataToSend.append("role", formData.role);
+    formDataToSend.append("status", formData.status ? "1" : "0");
 
     if (formData.profile_image) {
-      formDataToSend.append('profile_image', formData.profile_image);
+      formDataToSend.append("profile_image", formData.profile_image);
     }
 
-    await api.post('/users', formDataToSend, {
+    await api.post("/users", formDataToSend, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
 
@@ -236,7 +236,9 @@ const handleAddEmployee = async () => {
     resetForm();
     fetchEmployees();
 
-  } catch (err) {
+  } catch (error) {
+    const err = error as AxiosError<{ message?: string }>;
+
     const errorMessage =
       err.response?.data?.message || "Failed to add employee";
 
@@ -252,24 +254,25 @@ const handleAddEmployee = async () => {
 };
 
 
+
   // Handle edit employee
 const handleEditEmployee = async () => {
   if (!selectedEmployee) return;
 
   try {
     const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('email', formData.email);
-    formDataToSend.append('role', formData.role);
-    formDataToSend.append('status', formData.status ? '1' : '0');
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("role", formData.role);
+    formDataToSend.append("status", formData.status ? "1" : "0");
 
     if (formData.profile_image) {
-      formDataToSend.append('profile_image', formData.profile_image);
+      formDataToSend.append("profile_image", formData.profile_image);
     }
 
     await api.post(`/users/${selectedEmployee.id}`, formDataToSend, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
 
@@ -285,7 +288,9 @@ const handleEditEmployee = async () => {
     setSelectedEmployee(null);
     fetchEmployees();
 
-  } catch (err) {
+  } catch (error) {
+    // TypeScript-safe handling
+    const err = error as AxiosError<{ message?: string }>;
     const errorMessage =
       err.response?.data?.message || "Failed to update employee";
 
@@ -299,7 +304,6 @@ const handleEditEmployee = async () => {
     console.error("Error updating employee:", err);
   }
 };
-
 
   // Handle delete employee
   const handleDeleteEmployee = async () => {

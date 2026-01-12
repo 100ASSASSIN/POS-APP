@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import {
   Users,
   ShoppingBag,
   DollarSign,
-  TrendingUp,
+  // TrendingUp,
   Package,
   CreditCard,
   BarChart3,

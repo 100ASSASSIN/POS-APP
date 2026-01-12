@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
-  Upload,
+//   Upload,
   Image as ImageIcon,
-  AlertCircle,
-  CheckCircle,
+//   AlertCircle,
+//   CheckCircle,
   Loader,
   Package,
   DollarSign,
   Hash,
-  Tag,
+//   Tag,
   BarChart3,
   Shield,
   Save
@@ -72,6 +72,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   ]);
   
   const [loading, setLoading] = useState(false);
+
+  console.log(setCategories,loading,setLoading);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
