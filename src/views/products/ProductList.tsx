@@ -10,7 +10,6 @@ import {
   Trash2, 
   Eye, 
   Download, 
-  // Upload, 
   RefreshCw,
   Package,
   ShoppingBag,
@@ -19,23 +18,13 @@ import {
   AlertCircle,
   DollarSign,
   Hash,
-  // Tag,
-  // BarChart3,
-  // Shield,
   Save,
-  Upload as UploadIcon,
   Image as ImageIcon,
-  // CheckCircle,
   User,
   Calendar,
   Clock,
-  // Box,
   TrendingUp,
-  // TrendingDown,
   Info,
-  // Star,
-  // ShoppingCart,
-  // Layers,
   BarChart,
   Activity
 } from 'lucide-react';
@@ -326,7 +315,7 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({
                   <Info className="w-5 h-5 mr-2 text-blue-600" />
                   Product Details
                 </h4>
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Supplier</span>
                     <span className="font-medium">{product.supplier || 'N/A'}</span>
@@ -347,7 +336,7 @@ const ViewProductModal: React.FC<ViewProductModalProps> = ({
                     <span className="text-gray-600">Maximum Stock</span>
                     <span className="font-medium">{product.maximum_stock || 'Not Set'}</span>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Timeline */}
@@ -466,14 +455,20 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   });
   
   const [categories] = useState([
-    { id: 1, name: 'Electronics' },
-    { id: 2, name: 'Clothing' },
-    { id: 3, name: 'Home & Kitchen' },
-    { id: 4, name: 'Books' },
-    { id: 5, name: 'Sports' },
-    { id: 6, name: 'Beauty' },
-    { id: 7, name: 'Toys' },
-    { id: 8, name: 'Food' }
+    { id: 1, name: 'Accessories' },
+    { id: 2, name: 'Cables' },
+    { id: 3, name: 'Electronics' },
+    { id: 4, name: 'Electronics' },
+    { id: 5, name: 'Accessories' },
+    { id: 6, name: 'Fruits' },
+    { id: 7, name: 'Vegetables' },
+    { id: 8, name: 'Dairy' },
+    { id: 9, name: 'Meat' },
+    { id: 10, name: 'Bakery' },
+    { id: 11, name: 'Beverages' },
+    { id: 12, name: 'Pantry' },
+    { id: 13, name: 'Seafood' },
+    { id: 14, name: 'Frozen' }
   ]);
   
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -626,20 +621,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                   </select>
                 </div>
 
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter product description"
-                  />
-                </div> */}
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -769,7 +750,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Supplier
@@ -799,12 +780,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                       placeholder="0.0"
                     />
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Additional Information */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Dimensions (L×W×H)
@@ -848,7 +829,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                   placeholder="0"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="p-6 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -923,9 +904,9 @@ const ProductListPage = () => {
     itemCount: 0
   });
 
-  // User role (for demo - you can get this from auth context)
+  // User role from auth context
   const { user } = useAuth();
-  const [currentUserRole] = useState<'admin' | 'manager' >(user.role);
+  const currentUserRole = user?.role || 'viewer';
 
   // Refs for handling click outside
   const actionsMenuRef = useRef<HTMLDivElement>(null);
@@ -1218,10 +1199,9 @@ const ProductListPage = () => {
     }
   };
 
-   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleAddProduct = () => {
-    console.log('Add new product');
     navigate("/products/create");
   };
 
@@ -1335,7 +1315,7 @@ const ProductListPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - REMOVED Import/Export buttons */}
       <div className="bg-white border-b border-gray-200">
         <div className="px-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1350,22 +1330,11 @@ const ProductListPage = () => {
               <p className="text-gray-600 mt-1">Manage your product catalog and inventory</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
-                <button className="flex items-center px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
-                  <UploadIcon className="w-4 h-4 mr-2" />
-                  Import
-                </button>
-              </ProtectedComponent>
-              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
-                <button className="flex items-center px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </button>
-              </ProtectedComponent>
+              {/* Only show Add Product button */}
               <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
                 <button 
                   onClick={handleAddProduct}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                  className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Product
@@ -1678,108 +1647,139 @@ const ProductListPage = () => {
                 )}
               </div>
             ) : viewMode === 'grid' ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {currentProducts.map(product => (
-                    <div
-                      key={product.id}
-                      className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative"
+             <>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {currentProducts.map(product => (
+        <div
+          key={product.id}
+          className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative bg-white"
+        >
+          <div className="relative">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-48 object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/api/placeholder/400/300';
+              }}
+            />
+            <div className="absolute top-2 right-2 z-10">
+              <input
+                type="checkbox"
+                checked={selectedProducts.includes(product.id)}
+                onChange={() => handleSelectProduct(product.id)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+            </div>
+            <div className="absolute bottom-2 left-2">
+              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                product.status === 'Active' ? 'bg-green-100 text-green-800' :
+                product.status === 'Low Stock' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-red-100 text-red-800'
+              }`}>
+                {product.status}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 relative">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-medium text-gray-900 truncate pr-8" title={product.name}>
+                {product.name}
+              </h3>
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const menu = document.getElementById(`actions-menu-${product.id}`);
+                    if (menu) {
+                      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                    }
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                
+                {/* Action Menu - Using DOM manipulation */}
+                <div
+                  id={`actions-menu-${product.id}`}
+                  className="actions-menu absolute right-0 z-50 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg hidden"
+                  style={{ top: '100%' }}
+                >
+                  <div className="py-1">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        document.getElementById(`actions-menu-${product.id}`)!.style.display = 'none';
+                        handleViewProduct(product);
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
                     >
-                      <div className="relative">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-48 object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/api/placeholder/400/300';
-                          }}
-                        />
-                        <div className="absolute top-2 right-2 z-10">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.includes(product.id)}
-                            onChange={() => handleSelectProduct(product.id)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div className="absolute bottom-2 left-2">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            product.status === 'Active' ? 'bg-green-100 text-green-800' :
-                            product.status === 'Low Stock' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {product.status}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-4 relative">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium text-gray-900 truncate pr-8">{product.name}</h3>
-                          <div className="relative">
-                            <button
-                              onClick={(e) => toggleActionsMenu(product.id, e)}
-                              className="text-gray-400 hover:text-gray-600 p-1"
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </button>
-                            <div
-                              id={`actions-menu-${product.id}`}
-                              className="actions-menu absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 hidden"
-                              ref={actionsMenuRef}
-                            >
-                              <button
-                                onClick={() => handleViewProduct(product)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </button>
-                              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
-                                <button
-                                  onClick={() => handleEditProduct(product)}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                                >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit
-                                </button>
-                              </ProtectedComponent>
-                              <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
-                                <button
-                                  onClick={() => handleDeleteClick(product.id, product.name)}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 whitespace-nowrap"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete
-                                </button>
-                              </ProtectedComponent>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-3 truncate">{product.category}</p>
-                        <div className="flex justify-between items-center mb-3">
-                          <div>
-                            <p className="text-xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
-                            <p className="text-xs text-gray-500">Cost: ${product.cost.toFixed(2)}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className={`text-sm font-medium ${
-                              product.stock === 0 ? 'text-red-600' :
-                              product.stock < 10 ? 'text-yellow-600' :
-                              'text-green-600'
-                            }`}>
-                              {product.stock} in stock
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">{product.sku}</p>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          Updated: {new Date(product.lastUpdated).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
+                    </button>
+                    <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          document.getElementById(`actions-menu-${product.id}`)!.style.display = 'none';
+                          handleEditProduct(product);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </button>
+                    </ProtectedComponent>
+                    <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          document.getElementById(`actions-menu-${product.id}`)!.style.display = 'none';
+                          handleDeleteClick(product.id, product.name);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 whitespace-nowrap"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </button>
+                    </ProtectedComponent>
+                  </div>
                 </div>
-              </>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-3 truncate" title={product.category}>
+              {product.category}
+            </p>
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <p className="text-xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
+                <p className="text-xs text-gray-500">Cost: ${product.cost.toFixed(2)}</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-sm font-medium ${
+                  product.stock === 0 ? 'text-red-600' :
+                  product.stock < 10 ? 'text-yellow-600' :
+                  'text-green-600'
+                }`}>
+                  {product.stock} in stock
+                </p>
+                <p className="text-xs text-gray-500 truncate" title={product.sku}>
+                  {product.sku}
+                </p>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 truncate">
+              Updated: {new Date(product.lastUpdated).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[800px]">
@@ -1814,27 +1814,34 @@ const ProductListPage = () => {
                           />
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center">
+                          <div className="flex items-center min-w-0">
                             <img
                               src={product.image}
                               alt={product.name}
-                              className="w-10 h-10 rounded object-cover mr-3"
+                              className="w-10 h-10 rounded object-cover mr-3 flex-shrink-0"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/api/placeholder/400/300';
                               }}
                             />
-                            <div className="min-w-0">
-                              <p className="font-medium text-gray-900 truncate">{product.name}</p>
-                              <p className="text-xs text-gray-500 truncate">{product.supplier}</p>
+                            <div className="min-w-0 flex-1">
+                              {/* FIXED: Added max-width and proper truncation */}
+                              <p className="font-medium text-gray-900 truncate max-w-[200px]" title={product.name}>
+                                {product.name}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate max-w-[200px]" title={product.supplier}>
+                                {product.supplier || 'N/A'}
+                              </p>
                             </div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs inline-block max-w-[120px] truncate" title={product.category}>
                             {product.category}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{product.sku}</td>
+                        <td className="py-3 px-4 text-sm text-gray-600 truncate max-w-[120px]" title={product.sku}>
+                          {product.sku}
+                        </td>
                         <td className="py-3 px-4">
                           <p className="font-medium">${product.price.toFixed(2)}</p>
                           <p className="text-xs text-gray-500">Cost: ${product.cost.toFixed(2)}</p>
@@ -1861,7 +1868,7 @@ const ProductListPage = () => {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleViewProduct(product)}
-                              className="p-1 text-gray-400 hover:text-gray-600"
+                              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
                               title="View"
                             >
                               <Eye className="w-4 h-4" />
@@ -1869,7 +1876,7 @@ const ProductListPage = () => {
                             <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
                               <button
                                 onClick={() => handleEditProduct(product)}
-                                className="p-1 text-blue-400 hover:text-blue-600"
+                                className="p-1 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
@@ -1878,7 +1885,7 @@ const ProductListPage = () => {
                             <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
                               <button
                                 onClick={() => handleDeleteClick(product.id, product.name)}
-                                className="p-1 text-red-400 hover:text-red-600"
+                                className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />

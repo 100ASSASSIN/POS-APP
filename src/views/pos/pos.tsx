@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { 
-  ShoppingBag, 
-  Package, 
+import {
+  ShoppingBag,
+  Package,
   ShoppingCart,
   DollarSign,
   Plus,
@@ -38,6 +38,8 @@ import {
 } from 'lucide-react';
 import api from '../../utils/services/axios';
 import jsPDF from 'jspdf';
+import { useAuth } from "../../context/AuthContext";
+
 
 // Define TypeScript interfaces
 interface Product {
@@ -110,23 +112,23 @@ interface OrderPayload {
   customer_phone: string | null;
 }
 
-// Company information
-const COMPANY_INFO = {
-  name: "PayPoint Retail Solutions",
-  address: "123 Business Street, City, State 12345",
-  phone: "+1 (555) 123-4567",
-  email: "info@paypoint.com",
-  website: "www.paypoint.com",
-  gstNumber: "GSTIN123456789",
-  companyLogo: "/logo.png"
-};
-
 const PosApp = () => {
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-  
+  const { user } = useAuth();
+
+  const COMPANY_INFO = {
+    name: user.company_name || "PayPoint Solutions",
+    address: user.location || "123 Main Street, Cityville, Country",
+    phone: user.phone || "+1 (555) 123-4567",
+    email: user.email || "info@paypoint.com",
+    website: user.website || "www.paypoint.com",
+    gstNumber: user.gst_number || "GSTIN123456789",
+    companyLogo: "/logo.png"
+  };
+
   // API state
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([
@@ -173,7 +175,7 @@ const PosApp = () => {
   // Generate bill number and date
   useEffect(() => {
     const now = new Date();
-    const dateStr = now.toISOString().slice(0,10).replace(/-/g, '');
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
     const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     setBillNumber(`INV-${dateStr}-${randomNum}`);
     setBillDate(now.toLocaleDateString('en-US', {
@@ -194,11 +196,11 @@ const PosApp = () => {
       try {
         setLoading(true);
         const response = await api.get<ApiResponse>('/products');
-        
+
         const transformedProducts: Product[] = response.data.products.map(product => {
           const color = getCategoryColor(product.category.name);
           const imageUrl = product.product_image || getDefaultImage(product.category.name);
-          
+
           return {
             id: product.id,
             name: product.name,
@@ -210,22 +212,22 @@ const PosApp = () => {
             color: color
           };
         });
-        
+
         setProducts(transformedProducts);
-        
+
         const uniqueCategories = generateDynamicCategories(transformedProducts);
         setCategories([
           { name: 'All', icon: Home, color: 'bg-gray-100 text-gray-800 hover:bg-gray-200', activeColor: 'bg-gray-800 text-white' },
           ...uniqueCategories
         ]);
-        
+
         setError(null);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError('Failed to load products. Please try again later.');
         const fallbackProducts = getFallbackProducts();
         setProducts(fallbackProducts);
-        
+
         const fallbackCategories = generateDynamicCategories(fallbackProducts);
         setCategories([
           { name: 'All', icon: Home, color: 'bg-gray-100 text-gray-800 hover:bg-gray-200', activeColor: 'bg-gray-800 text-white' },
@@ -254,7 +256,7 @@ const PosApp = () => {
   // Helper functions
   const generateDynamicCategories = (products: Product[]): Category[] => {
     const uniqueCategoryNames = Array.from(new Set(products.map(p => p.category)));
-    
+
     return uniqueCategoryNames.map(categoryName => {
       const categoryConfig = getCategoryConfig(categoryName);
       return {
@@ -322,7 +324,7 @@ const PosApp = () => {
       'Utensils': 'bg-gray-50 border-gray-100',
       'General': 'bg-gray-50 border-gray-100'
     };
-    
+
     return colorMap[categoryName] || 'bg-gray-50 border-gray-100';
   };
 
@@ -341,37 +343,37 @@ const PosApp = () => {
       'Accessories': 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop',
       'Cables': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400&h=300&fit=crop'
     };
-    
+
     return defaultImages[categoryName] || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop';
   };
 
   const getFallbackProducts = (): Product[] => [
-    { 
-      id: 1, 
-      name: 'Fresh Apples', 
-      category: 'Fruits', 
-      price: 3.99, 
-      stock: 45, 
+    {
+      id: 1,
+      name: 'Fresh Apples',
+      category: 'Fruits',
+      price: 3.99,
+      stock: 45,
       barcode: '123456789',
       image: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=300&fit=crop',
       color: 'bg-red-50 border-red-100'
     },
-    { 
-      id: 2, 
-      name: 'Banana Bunch', 
-      category: 'Fruits', 
-      price: 2.49, 
-      stock: 68, 
+    {
+      id: 2,
+      name: 'Banana Bunch',
+      category: 'Fruits',
+      price: 2.49,
+      stock: 68,
       barcode: '123456790',
       image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop',
       color: 'bg-yellow-50 border-yellow-100'
     },
-    { 
-      id: 4, 
-      name: 'Organic Milk', 
-      category: 'Dairy', 
-      price: 4.99, 
-      stock: 32, 
+    {
+      id: 4,
+      name: 'Organic Milk',
+      category: 'Dairy',
+      price: 4.99,
+      stock: 32,
       barcode: '123456792',
       image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop',
       color: 'bg-blue-50 border-blue-100'
@@ -381,7 +383,7 @@ const PosApp = () => {
   // Filter products based on search and category
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.barcode.toLowerCase().includes(searchTerm.toLowerCase());
+      product.barcode.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -397,16 +399,16 @@ const PosApp = () => {
             : item
         );
       } else {
-        return [...prevCart, { 
-          id: product.id, 
-          name: product.name, 
-          price: product.price, 
+        return [...prevCart, {
+          id: product.id,
+          name: product.name,
+          price: product.price,
           quantity: 1,
           image: product.image || getDefaultImage(product.category)
         }];
       }
     });
-    
+
     if (!isDrawerOpen) {
       setIsDrawerOpen(true);
     }
@@ -476,7 +478,7 @@ const PosApp = () => {
       };
 
       const response = await api.post('/orders/', orderPayload);
-      
+
       if (response.data && response.data.id) {
         return response.data.id;
       }
@@ -560,7 +562,7 @@ const PosApp = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('BILL TO:', customerStartX, 65);
       doc.setFont('helvetica', 'normal');
-      
+
       let customerY = 70;
       if (customerData.name) {
         doc.text(`Name: ${customerData.name}`, customerStartX, customerY);
@@ -583,10 +585,10 @@ const PosApp = () => {
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
       doc.setFillColor(30, 64, 175);
-      
+
       // Draw table header background
       doc.rect(marginLeft, 85, contentWidth, 8, 'F');
-      
+
       // Add header text
       doc.setTextColor(255, 255, 255);
       doc.text('Sr No.', marginLeft + 5, 90);
@@ -600,7 +602,7 @@ const PosApp = () => {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      
+
       cart.forEach((item, index) => {
         // Alternate row colors
         if (index % 2 === 0) {
@@ -610,20 +612,20 @@ const PosApp = () => {
 
         // Serial number
         doc.text((index + 1).toString(), marginLeft + 5, startY);
-        
+
         // Item name (with truncation)
         const itemName = item.name.length > 35 ? item.name.substring(0, 32) + '...' : item.name;
         doc.text(itemName, marginLeft + 20, startY);
-        
+
         // Quantity
         doc.text(item.quantity.toString(), marginLeft + contentWidth - 60, startY);
-        
+
         // Unit price
         doc.text(`$${item.price.toFixed(2)}`, marginLeft + contentWidth - 45, startY);
-        
+
         // Total
         doc.text(`$${(item.price * item.quantity).toFixed(2)}`, marginLeft + contentWidth - 20, startY, { align: 'right' });
-        
+
         startY += 10;
       });
 
@@ -635,7 +637,7 @@ const PosApp = () => {
 
       // Add totals section
       const totalsStartX = pageWidth - marginRight - 60;
-      
+
       // Subtotal
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
@@ -653,7 +655,7 @@ const PosApp = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('GRAND TOTAL:', totalsStartX, startY);
       doc.text(`$${total.toFixed(2)}`, pageWidth - marginRight, startY, { align: 'right' });
-      
+
       // Add horizontal line
       startY += 8;
       doc.setDrawColor(200, 200, 200);
@@ -677,7 +679,7 @@ const PosApp = () => {
       doc.text('Thank you for your business!', pageWidth / 2, startY, { align: 'center' });
       doc.text('This is a computer-generated invoice. No signature required.', pageWidth / 2, startY + 5, { align: 'center' });
       doc.text('For any queries, please contact: ' + COMPANY_INFO.phone, pageWidth / 2, startY + 10, { align: 'center' });
-      
+
       // Terms and conditions
       doc.text('Terms & Conditions:', marginLeft, startY + 20);
       doc.text('1. Goods once sold cannot be returned or exchanged.', marginLeft + 5, startY + 25);
@@ -690,20 +692,20 @@ const PosApp = () => {
 
       // Save the PDF
       const customerName = customerData.name ? `_${customerData.name.replace(/\s+/g, '_')}` : '';
-      const fileName = savedOrderId 
+      const fileName = savedOrderId
         ? `Invoice_ORD-${savedOrderId.toString().padStart(4, '0')}${customerName}.pdf`
         : `Invoice_${billNumber}${customerName}.pdf`;
-      
+
       doc.save(fileName);
 
       // Show success message
       const apiSuccess = savedOrderId ? ` (Order ID: ORD-${savedOrderId.toString().padStart(4, '0')})` : '';
       setSuccessMessage(`Invoice generated successfully: ${fileName}${apiSuccess}`);
       setShowSuccessMessage(true);
-      
+
       // Reset customer modal
       setShowCustomerModal(false);
-      
+
       // Clear success message after 5 seconds and clear cart
       setTimeout(() => {
         setShowSuccessMessage(false);
@@ -762,9 +764,19 @@ const PosApp = () => {
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Building className="w-6 h-6 mr-2 text-blue-600" />
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">PayPoint POS</h1>
+                <Building className="w-6 h-6 mr-2 text-gray-800" />
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">PayPoint POS - {COMPANY_INFO.name}</h1>
+                <span className="m-4 h-12 w-12 rounded-full overflow-hidden flex justify-center items-center cursor-pointer hover:bg-lightprimary">
+
+                  <img
+                    src={user.profile_image}
+                    alt={user.name}
+                    className="h-full w-full object-cover"
+                  />
+
+                </span>
               </div>
+
               {/* Cart Button */}
               <button
                 onClick={() => setIsDrawerOpen(true)}
@@ -822,7 +834,7 @@ const PosApp = () => {
               className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base"
             />
           </div>
-          
+
           {/* Simple Text Category Filter */}
           <div className="mb-4">
             <div className="flex items-center mb-3">
@@ -836,7 +848,7 @@ const PosApp = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {categories.map(category => {
                 const Icon = category.icon;
@@ -845,11 +857,10 @@ const PosApp = () => {
                   <button
                     key={category.name}
                     onClick={() => setSelectedCategory(category.name)}
-                    className={`flex items-center px-3 py-2 rounded-lg font-medium transition-all ${
-                      isActive 
-                        ? `${category.activeColor} shadow` 
+                    className={`flex items-center px-3 py-2 rounded-lg font-medium transition-all ${isActive
+                        ? `${category.activeColor} shadow`
                         : `${category.color} hover:shadow`
-                    }`}
+                      }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {category.name}
@@ -858,7 +869,7 @@ const PosApp = () => {
               })}
             </div>
           </div>
-          
+
           {/* Selected Category Info */}
           {selectedCategory !== 'All' && (
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -886,7 +897,7 @@ const PosApp = () => {
               {filteredProducts.length} products
             </span>
           </div>
-          
+
           {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
@@ -894,7 +905,7 @@ const PosApp = () => {
               <p className="text-gray-600">Loading products...</p>
             </div>
           )}
-          
+
           {/* Error State */}
           {error && !loading && (
             <div className="text-center py-12 text-red-600">
@@ -902,7 +913,7 @@ const PosApp = () => {
               <p className="text-sm text-gray-600">Showing fallback products</p>
             </div>
           )}
-          
+
           {/* Product Grid */}
           {!loading && (
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-h-[calc(100vh-300px)] sm:max-h-[calc(100vh-350px)] overflow-y-auto p-1">
@@ -915,8 +926,8 @@ const PosApp = () => {
                   <div className="flex flex-col h-full">
                     <div className="mb-2 sm:mb-3">
                       <div className="h-28 sm:h-32 md:h-36 rounded-lg overflow-hidden mb-2 sm:mb-3">
-                        <img 
-                          src={product.image} 
+                        <img
+                          src={product.image}
                           alt={product.name}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                           onError={(e) => {
@@ -929,18 +940,17 @@ const PosApp = () => {
                         <span className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-white rounded-full text-gray-600">
                           {product.category}
                         </span>
-                        <span className={`text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-semibold ${
-                          product.stock > 20
+                        <span className={`text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-semibold ${product.stock > 20
                             ? 'bg-green-100 text-green-800'
                             : product.stock > 5
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
                           {product.stock} in stock
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="mt-auto">
                       <div className="flex items-center justify-between">
                         <div>
@@ -957,7 +967,7 @@ const PosApp = () => {
               ))}
             </div>
           )}
-          
+
           {!loading && filteredProducts.length === 0 && (
             <div className="text-center py-8 sm:py-12 text-gray-500">
               <Search className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-300" />
@@ -985,16 +995,15 @@ const PosApp = () => {
 
       {/* Drawer Overlay */}
       {isDrawerOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
 
       {/* Drawer (Right Side - On Top Layer) */}
-      <div className={`fixed top-0 right-0 h-screen ${getDrawerWidth()} bg-white shadow-2xl transform transition-transform duration-300 z-50 ${
-        isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
+      <div className={`fixed top-0 right-0 h-screen ${getDrawerWidth()} bg-white shadow-2xl transform transition-transform duration-300 z-50 ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
         <div className="h-full flex flex-col">
           {/* Drawer Header */}
           <div className="p-4 sm:p-6 border-b flex items-center justify-between">
@@ -1039,8 +1048,8 @@ const PosApp = () => {
                     <div key={item.id} className="bg-white border rounded-xl p-3 sm:p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-start">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden mr-3 sm:mr-4 flex-shrink-0">
-                          <img 
-                            src={item.image} 
+                          <img
+                            src={item.image}
                             alt={item.name}
                             className="w-full h-full object-cover"
                           />
@@ -1059,7 +1068,7 @@ const PosApp = () => {
                               </span>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center border rounded-lg overflow-hidden">
                               <button
@@ -1153,7 +1162,7 @@ const PosApp = () => {
                   <span>Pay ${total.toFixed(2)} Now</span>
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </button>
-                
+
                 {/* Additional Options */}
                 <div className="flex items-center justify-center gap-4">
                   <button
@@ -1295,7 +1304,7 @@ const PosApp = () => {
                     </>
                   )}
                 </button>
-                
+
                 <button
                   onClick={() => setShowCustomerModal(false)}
                   disabled={isGeneratingPDF}

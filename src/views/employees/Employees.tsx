@@ -17,7 +17,12 @@ import {
   Upload,
   User,
   Key,
-  Image
+  Image,
+  Building,
+  MapPin,
+  Phone,
+  FileText,
+  Globe
 } from 'lucide-react';
 import api from '../../utils/services/axios';
 import { useAuth } from "../../context/AuthContext";
@@ -33,9 +38,13 @@ interface Employee {
   status: boolean;
   default_role_route: string;
   profile_image: string | null;
+  company_name: string | null;
+  location: string | null;
+  phone: string | null;
+  gst_number: string | null;
+  website: string | null;
   created_at?: string;
   updated_at?: string;
-  err: string | null;
 }
 
 interface EmployeesResponse {
@@ -69,7 +78,7 @@ const Employees = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false); // Added for Eye button
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   
   // Form states
@@ -79,7 +88,12 @@ const Employees = () => {
     password: '',
     role: 'cashier' as 'admin' | 'manager' | 'cashier' | 'staff',
     status: true,
-    profile_image: null as File | null
+    profile_image: null as File | null,
+    company_name: '',
+    location: '',
+    phone: '',
+    gst_number: '',
+    website: ''
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -106,7 +120,9 @@ const Employees = () => {
   const filteredEmployees = employeesData.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.role.toLowerCase().includes(searchTerm.toLowerCase())
+    employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (employee.company_name && employee.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (employee.location && employee.location.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Handle employee selection
@@ -200,110 +216,123 @@ const Employees = () => {
       password: '',
       role: 'cashier',
       status: true,
-      profile_image: null
+      profile_image: null,
+      company_name: '',
+      location: '',
+      phone: '',
+      gst_number: '',
+      website: ''
     });
     setImagePreview(null);
   };
 
   // Handle add employee
-const handleAddEmployee = async () => {
-  try {
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("password", formData.password);
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("status", formData.status ? "1" : "0");
+  const handleAddEmployee = async () => {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
+      formDataToSend.append("role", formData.role);
+      formDataToSend.append("status", formData.status ? "1" : "0");
+      formDataToSend.append("company_name", formData.company_name);
+      formDataToSend.append("location", formData.location);
+      formDataToSend.append("phone", formData.phone);
+      formDataToSend.append("gst_number", formData.gst_number);
+      formDataToSend.append("website", formData.website);
 
-    if (formData.profile_image) {
-      formDataToSend.append("profile_image", formData.profile_image);
+      if (formData.profile_image) {
+        formDataToSend.append("profile_image", formData.profile_image);
+      }
+
+      await api.post("/users", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      toast.success("Employee added successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "light",
+        transition: Bounce,
+      });
+
+      setShowAddModal(false);
+      resetForm();
+      fetchEmployees();
+
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+
+      const errorMessage =
+        err.response?.data?.message || "Failed to add employee";
+
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+        theme: "light",
+        transition: Bounce,
+      });
+
+      console.error("Error adding employee:", err);
     }
-
-    await api.post("/users", formDataToSend, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    toast.success("Employee added successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-      theme: "light",
-      transition: Bounce,
-    });
-
-    setShowAddModal(false);
-    resetForm();
-    fetchEmployees();
-
-  } catch (error) {
-    const err = error as AxiosError<{ message?: string }>;
-
-    const errorMessage =
-      err.response?.data?.message || "Failed to add employee";
-
-    toast.error(errorMessage, {
-      position: "top-right",
-      autoClose: 4000,
-      theme: "light",
-      transition: Bounce,
-    });
-
-    console.error("Error adding employee:", err);
-  }
-};
-
-
+  };
 
   // Handle edit employee
-const handleEditEmployee = async () => {
-  if (!selectedEmployee) return;
+  const handleEditEmployee = async () => {
+    if (!selectedEmployee) return;
 
-  try {
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("status", formData.status ? "1" : "0");
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("role", formData.role);
+      formDataToSend.append("password", formData.password);
+      formDataToSend.append("status", formData.status ? "1" : "0");
+      formDataToSend.append("company_name", formData.company_name);
+      formDataToSend.append("location", formData.location);
+      formDataToSend.append("phone", formData.phone);
+      formDataToSend.append("gst_number", formData.gst_number);
+      formDataToSend.append("website", formData.website);
 
-    if (formData.profile_image) {
-      formDataToSend.append("profile_image", formData.profile_image);
+      if (formData.profile_image) {
+        formDataToSend.append("profile_image", formData.profile_image);
+      }
+
+      await api.post(`/users/${selectedEmployee.id}`, formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      toast.success("Employee updated successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "light",
+        transition: Bounce,
+      });
+
+      setShowEditModal(false);
+      resetForm();
+      setSelectedEmployee(null);
+      fetchEmployees();
+
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const errorMessage =
+        err.response?.data?.message || "Failed to update employee";
+
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+        theme: "light",
+        transition: Bounce,
+      });
+
+      console.error("Error updating employee:", err);
     }
-
-    await api.post(`/users/${selectedEmployee.id}`, formDataToSend, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    toast.success("Employee updated successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-      theme: "light",
-      transition: Bounce,
-    });
-
-    setShowEditModal(false);
-    resetForm();
-    setSelectedEmployee(null);
-    fetchEmployees();
-
-  } catch (error) {
-    // TypeScript-safe handling
-    const err = error as AxiosError<{ message?: string }>;
-    const errorMessage =
-      err.response?.data?.message || "Failed to update employee";
-
-    toast.error(errorMessage, {
-      position: "top-right",
-      autoClose: 4000,
-      theme: "light",
-      transition: Bounce,
-    });
-
-    console.error("Error updating employee:", err);
-  }
-};
+  };
 
   // Handle delete employee
   const handleDeleteEmployee = async () => {
@@ -335,7 +364,12 @@ const handleEditEmployee = async () => {
       password: '', // Don't show password
       role: employee.role,
       status: employee.status,
-      profile_image: null
+      profile_image: null,
+      company_name: employee.company_name || '',
+      location: employee.location || '',
+      phone: employee.phone || '',
+      gst_number: employee.gst_number || '',
+      website: employee.website || ''
     });
     setImagePreview(employee.profile_image);
     setShowEditModal(true);
@@ -479,7 +513,7 @@ const handleEditEmployee = async () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search employees by name, email, or role..."
+              placeholder="Search employees by name, email, role, company, or location..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -543,6 +577,7 @@ const handleEditEmployee = async () => {
                 </ProtectedComponent>
                 <th className="text-left p-3 md:p-4 text-sm font-medium text-gray-700">Employee</th>
                 <th className="text-left p-3 md:p-4 text-sm font-medium text-gray-700">Contact</th>
+                <th className="text-left p-3 md:p-4 text-sm font-medium text-gray-700">Company Details</th>
                 <th className="text-left p-3 md:p-4 text-sm font-medium text-gray-700">Role</th>
                 <th className="text-left p-3 md:p-4 text-sm font-medium text-gray-700">Status</th>
                 <th className="text-left p-3 md:p-4 text-sm font-medium text-gray-700">Actions</th>
@@ -551,7 +586,7 @@ const handleEditEmployee = async () => {
             <tbody className="divide-y divide-gray-100">
               {filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={user.role === 'admin' ? 6 : 5} className="p-8 text-center">
+                  <td colSpan={user.role === 'admin' ? 7 : 6} className="p-8 text-center">
                     <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-600">No employees found</p>
                     {searchTerm && (
@@ -600,10 +635,28 @@ const handleEditEmployee = async () => {
                           <Mail className="w-3 h-3 text-gray-400" />
                           <span className="text-sm text-gray-600">{employee.email}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">{formatDate(employee.created_at)}</span>
-                        </div>
+                        {employee.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-3 h-3 text-gray-400" />
+                            <span className="text-xs text-gray-500">{employee.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3 md:p-4">
+                      <div className="space-y-1">
+                        {employee.company_name && (
+                          <div className="flex items-center gap-2">
+                            <Building className="w-3 h-3 text-gray-400" />
+                            <span className="text-sm text-gray-600">{employee.company_name}</span>
+                          </div>
+                        )}
+                        {employee.location && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3 h-3 text-gray-400" />
+                            <span className="text-xs text-gray-500">{employee.location}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="p-3 md:p-4">
@@ -694,184 +747,305 @@ const handleEditEmployee = async () => {
 
       {/* View Employee Modal (for Eye button) */}
       {showViewModal && selectedEmployee && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-bold text-gray-800">Employee Details</h3>
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl shadow-lg max-w-md w-full max-h-[90vh] flex flex-col">
+      <div className="p-6 border-b flex-shrink-0">
+        <h3 className="text-lg font-bold text-gray-800">Employee Details</h3>
+      </div>
+      <div className="p-6 overflow-y-auto flex-grow">
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mb-4">
+            {selectedEmployee.profile_image ? (
+              <img 
+                src={selectedEmployee.profile_image} 
+                alt={selectedEmployee.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-12 h-12 text-gray-400" />
+            )}
+          </div>
+          <h4 className="text-xl font-bold text-gray-800 text-center">{selectedEmployee.name}</h4>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getRoleColor(selectedEmployee.role)}`}>
+            {selectedEmployee.role.charAt(0).toUpperCase() + selectedEmployee.role.slice(1)}
+          </span>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <Mail className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-grow min-w-0">
+              <p className="text-sm text-gray-600">Email</p>
+              <p className="font-medium break-words">{selectedEmployee.email}</p>
             </div>
-            <div className="p-6">
-              <div className="flex flex-col items-center mb-6">
-                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mb-4">
-                  {selectedEmployee.profile_image ? (
-                    <img 
-                      src={selectedEmployee.profile_image} 
-                      alt={selectedEmployee.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User className="w-12 h-12 text-gray-400" />
-                  )}
-                </div>
-                <h4 className="text-xl font-bold text-gray-800">{selectedEmployee.name}</h4>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getRoleColor(selectedEmployee.role)}`}>
-                  {selectedEmployee.role.charAt(0).toUpperCase() + selectedEmployee.role.slice(1)}
-                </span>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium">{selectedEmployee.email}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <CheckCircle className={`w-5 h-5 ${selectedEmployee.status ? 'text-green-500' : 'text-red-500'}`} />
-                  <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <p className={`font-medium ${selectedEmployee.status ? 'text-green-600' : 'text-red-600'}`}>
-                      {selectedEmployee.status ? 'Active' : 'Inactive'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Created</p>
-                    <p className="font-medium">{formatDate(selectedEmployee.created_at)}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Last Updated</p>
-                    <p className="font-medium">{formatDate(selectedEmployee.updated_at)}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Default Route</p>
-                    <p className="font-medium">{selectedEmployee.default_role_route}</p>
-                  </div>
-                </div>
+          </div>
+          
+          {selectedEmployee.phone && (
+            <div className="flex items-start gap-3">
+              <Phone className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-grow min-w-0">
+                <p className="text-sm text-gray-600">Phone</p>
+                <p className="font-medium break-words">{selectedEmployee.phone}</p>
               </div>
             </div>
-            <div className="p-6 border-t flex justify-end">
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setSelectedEmployee(null);
-                }}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Close
-              </button>
+          )}
+          
+          {selectedEmployee.company_name && (
+            <div className="flex items-start gap-3">
+              <Building className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-grow min-w-0">
+                <p className="text-sm text-gray-600">Company Name</p>
+                <p className="font-medium break-words">{selectedEmployee.company_name}</p>
+              </div>
+            </div>
+          )}
+          
+          {selectedEmployee.location && (
+            <div className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-grow min-w-0">
+                <p className="text-sm text-gray-600">Location</p>
+                <p className="font-medium break-words">{selectedEmployee.location}</p>
+              </div>
+            </div>
+          )}
+          
+          {selectedEmployee.gst_number && (
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-grow min-w-0">
+                <p className="text-sm text-gray-600">GST Number</p>
+                <p className="font-medium break-words">{selectedEmployee.gst_number}</p>
+              </div>
+            </div>
+          )}
+          
+          {selectedEmployee.website && (
+            <div className="flex items-start gap-3">
+              <Globe className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-grow min-w-0">
+                <p className="text-sm text-gray-600">Website</p>
+                <a 
+                  href={selectedEmployee.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="font-medium text-blue-600 hover:underline break-all"
+                >
+                  {selectedEmployee.website}
+                </a>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-start gap-3">
+            <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${selectedEmployee.status ? 'text-green-500' : 'text-red-500'}`} />
+            <div className="flex-grow min-w-0">
+              <p className="text-sm text-gray-600">Status</p>
+              <p className={`font-medium ${selectedEmployee.status ? 'text-green-600' : 'text-red-600'}`}>
+                {selectedEmployee.status ? 'Active' : 'Inactive'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-grow min-w-0">
+              <p className="text-sm text-gray-600">Created</p>
+              <p className="font-medium">{formatDate(selectedEmployee.created_at)}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-grow min-w-0">
+              <p className="text-sm text-gray-600">Last Updated</p>
+              <p className="font-medium">{formatDate(selectedEmployee.updated_at)}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-grow min-w-0">
+              <p className="text-sm text-gray-600">Default Route</p>
+              <p className="font-medium break-words">{selectedEmployee.default_role_route}</p>
             </div>
           </div>
         </div>
+      </div>
+      <div className="p-6 border-t flex justify-end flex-shrink-0">
+        <button
+          onClick={() => {
+            setShowViewModal(false);
+            setSelectedEmployee(null);
+          }}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
       )}
 
       {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
+          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full">
             <div className="p-6 border-b">
               <h3 className="text-lg font-bold text-gray-800">Add New Employee</h3>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-10 h-10 text-gray-400" />
-                    )}
-                  </div>
-                  <label className="cursor-pointer">
-                    <div className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                      <Image className="w-4 h-4" />
-                      Upload Image
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Profile Image */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-10 h-10 text-gray-400" />
+                      )}
                     </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </label>
+                    <label className="cursor-pointer">
+                      <div className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                        <Image className="w-4 h-4" />
+                        Upload Image
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="cashier">Cashier</option>
-                  <option value="manager">Manager</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="status"
-                  checked={formData.status}
-                  onChange={handleInputChange}
-                  className="rounded border-gray-300"
-                  id="status-checkbox"
-                />
-                <label htmlFor="status-checkbox" className="ml-2 text-sm text-gray-700">
-                  Active Account
-                </label>
+                
+                {/* Basic Info */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="cashier">Cashier</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+                
+                {/* Company Details */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                  <input
+                    type="text"
+                    name="company_name"
+                    value={formData.company_name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
+                  <input
+                    type="text"
+                    name="gst_number"
+                    value={formData.gst_number}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://example.com"
+                  />
+                </div>
+                
+                {/* Status */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="status"
+                      checked={formData.status}
+                      onChange={handleInputChange}
+                      className="rounded border-gray-300"
+                      id="status-checkbox"
+                    />
+                    <label htmlFor="status-checkbox" className="ml-2 text-sm text-gray-700">
+                      Active Account
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="p-6 border-t flex justify-end gap-3">
@@ -898,86 +1072,162 @@ const handleEditEmployee = async () => {
       {/* Edit Employee Modal */}
       {showEditModal && selectedEmployee && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-lg max-w-md w-full">
+          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full">
             <div className="p-6 border-b">
               <h3 className="text-lg font-bold text-gray-800">Edit Employee</h3>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-10 h-10 text-gray-400" />
-                    )}
-                  </div>
-                  <label className="cursor-pointer">
-                    <div className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                      <Image className="w-4 h-4" />
-                      Change Image
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Profile Image */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-10 h-10 text-gray-400" />
+                      )}
                     </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </label>
+                    <label className="cursor-pointer">
+                      <div className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                        <Image className="w-4 h-4" />
+                        Change Image
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="cashier">Cashier</option>
-                  <option value="manager">Manager</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="status"
-                  checked={formData.status}
-                  onChange={handleInputChange}
-                  className="rounded border-gray-300"
-                  id="edit-status-checkbox"
-                />
-                <label htmlFor="edit-status-checkbox" className="ml-2 text-sm text-gray-700">
-                  Active Account
-                </label>
+                
+                {/* Basic Info */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                   <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="cashier">Cashier</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+                
+                {/* Company Details */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                  <input
+                    type="text"
+                    name="company_name"
+                    value={formData.company_name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
+                  <input
+                    type="text"
+                    name="gst_number"
+                    value={formData.gst_number}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://example.com"
+                  />
+                </div>
+                
+                {/* Status */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="status"
+                      checked={formData.status}
+                      onChange={handleInputChange}
+                      className="rounded border-gray-300"
+                      id="edit-status-checkbox"
+                    />
+                    <label htmlFor="edit-status-checkbox" className="ml-2 text-sm text-gray-700">
+                      Active Account
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="p-6 border-t flex justify-end gap-3">

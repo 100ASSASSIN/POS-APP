@@ -61,14 +61,20 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   });
   
   const [categories, setCategories] = useState<Category[]>([
-    { id: 1, name: 'Electronics' },
-    { id: 2, name: 'Clothing' },
-    { id: 3, name: 'Home & Kitchen' },
-    { id: 4, name: 'Books' },
-    { id: 5, name: 'Sports' },
-    { id: 6, name: 'Beauty' },
-    { id: 7, name: 'Toys' },
-    { id: 8, name: 'Food' }
+  { id: 1, name: 'Accessories' },
+  { id: 2, name: 'Cables' },
+  { id: 3, name: 'Electronics' },
+  { id: 4, name: 'Electronics' },
+  { id: 5, name: 'Accessories' },
+  { id: 6, name: 'Fruits' },
+  { id: 7, name: 'Vegetables' },
+  { id: 8, name: 'Dairy' },
+  { id: 9, name: 'Meat' },
+  { id: 10, name: 'Bakery' },
+  { id: 11, name: 'Beverages' },
+  { id: 12, name: 'Pantry' },
+  { id: 13, name: 'Seafood' },
+  { id: 14, name: 'Frozen' }
   ]);
   
   const [loading, setLoading] = useState(false);
@@ -353,25 +359,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         <p className="text-gray-600">
                           <span className="font-medium">Headers:</span> x-api-key, Accept, Origin
                         </p>
-                        <details className="mt-1">
-                          <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
-                            View Curl Command
-                          </summary>
-                          <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-x-auto">
-{`curl --location 'http://localhost:8000/api/products/${product.id}' \\
---header 'Content-Type: application/json' \\
---header 'Accept: application/json' \\
---header 'Origin: http://localhost:5173' \\
---header 'x-api-key: your-api-key-here' \\
---header 'Cookie: access_token=your-token-here' \\
---form 'category_id="${formData.category_id}"' \\
---form 'name="${formData.name}"' \\
---form 'price="${formData.price}"' \\
---form 'stock="${formData.stock}"' \\
---form 'sku="${formData.sku}"' \\
---form 'status="${formData.status}"'`}
-                          </pre>
-                        </details>
+                       
                       </div>
                     </div>
                   </div>

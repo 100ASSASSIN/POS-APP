@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   ArrowLeft,
   Save,
   Upload,
@@ -7,18 +7,18 @@ import {
   Package,
   DollarSign,
   Hash,
-//   Tag,
+  //   Tag,
   BarChart3,
   AlertCircle,
   CheckCircle,
   Loader,
   X,
-//   Layers,
+  //   Layers,
   Scale,
   Box,
   ClipboardCheck,
   Info,
-//   Shield,
+  //   Shield,
   ShoppingBag
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +31,7 @@ interface Category {
 
 const AddProductPage = () => {
   const navigate = useNavigate();
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -52,7 +52,7 @@ const AddProductPage = () => {
     minimum_stock: '',
     maximum_stock: ''
   });
-  
+
   // UI states
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,14 +74,20 @@ const AddProductPage = () => {
         console.error('Error fetching categories:', err);
         // Fallback categories
         setCategories([
-          { id: 1, name: 'Electronics' },
-          { id: 2, name: 'Clothing' },
-          { id: 3, name: 'Home & Kitchen' },
-          { id: 4, name: 'Books' },
-          { id: 5, name: 'Sports' },
-          { id: 6, name: 'Beauty' },
-          { id: 7, name: 'Toys' },
-          { id: 8, name: 'Food' }
+          { id: 1, name: 'Accessories' },
+          { id: 2, name: 'Cables' },
+          { id: 3, name: 'Electronics' },
+          { id: 4, name: 'Electronics' },
+          { id: 5, name: 'Accessories' },
+          { id: 6, name: 'Fruits' },
+          { id: 7, name: 'Vegetables' },
+          { id: 8, name: 'Dairy' },
+          { id: 9, name: 'Meat' },
+          { id: 10, name: 'Bakery' },
+          { id: 11, name: 'Beverages' },
+          { id: 12, name: 'Pantry' },
+          { id: 13, name: 'Seafood' },
+          { id: 14, name: 'Frozen' }
         ]);
       } finally {
         setLoading(false);
@@ -107,7 +113,7 @@ const AddProductPage = () => {
         setError('Image size should be less than 5MB');
         return;
       }
-      
+
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
       if (!validTypes.includes(file.type)) {
@@ -119,7 +125,7 @@ const AddProductPage = () => {
         ...prev,
         product_image: file
       }));
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -151,7 +157,7 @@ const AddProductPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.name || !formData.category_id || !formData.price || !formData.stock || !formData.sku) {
       setError('Please fill in all required fields (marked with *)');
@@ -165,7 +171,7 @@ const AddProductPage = () => {
 
       // Create FormData for multipart/form-data
       const formDataToSend = new FormData();
-      
+
       // Add all form fields
       formDataToSend.append('name', formData.name);
       formDataToSend.append('category_id', formData.category_id.toString());
@@ -173,7 +179,7 @@ const AddProductPage = () => {
       formDataToSend.append('stock', formData.stock.toString());
       formDataToSend.append('sku', formData.sku);
       formDataToSend.append('status', formData.status);
-      
+
       // Add optional fields if they exist
       if (formData.cost) formDataToSend.append('cost', formData.cost.toString());
       if (formData.barcode) formDataToSend.append('barcode', formData.barcode);
@@ -185,7 +191,7 @@ const AddProductPage = () => {
       if (formData.location) formDataToSend.append('location', formData.location.toString());
       if (formData.minimum_stock) formDataToSend.append('minimum_stock', formData.minimum_stock.toString());
       if (formData.maximum_stock) formDataToSend.append('maximum_stock', formData.maximum_stock.toString());
-      
+
       // Add image if provided
       if (formData.product_image instanceof File) {
         formDataToSend.append('product_image', formData.product_image);
@@ -193,7 +199,7 @@ const AddProductPage = () => {
 
       // Get authentication headers
       const headers = getAuthHeaders();
-      
+
       // Make the API call
       const response = await api.post('/products', formDataToSend, {
         headers: {
@@ -204,7 +210,7 @@ const AddProductPage = () => {
 
       if (response.data.message) {
         setSuccess(true);
-        
+
         // Reset form after successful submission
         setTimeout(() => {
           setFormData({
@@ -227,7 +233,7 @@ const AddProductPage = () => {
             maximum_stock: ''
           });
           setImagePreview('');
-          
+
           // Navigate back after 2 seconds
           setTimeout(() => {
             navigate('/products');
@@ -236,12 +242,12 @@ const AddProductPage = () => {
       } else {
         throw new Error(response.data?.message || 'Failed to create product');
       }
-      
+
     } catch (error: any) {
       console.error('Error creating product:', error);
       setError(
-        error.response?.data?.message || 
-        error.message || 
+        error.response?.data?.message ||
+        error.message ||
         'Failed to create product. Please try again.'
       );
     } finally {
@@ -423,7 +429,7 @@ const AddProductPage = () => {
                           placeholder="e.g., PROD-001"
                         />
                       </div>
-                        <div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <span className="text-red-500">*</span> TAX
                         </label>
@@ -437,7 +443,7 @@ const AddProductPage = () => {
                           placeholder="e.g., 2%"
                         />
                       </div>
-                              <div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <span className="text-red-500">*</span> Location
                         </label>
@@ -448,7 +454,9 @@ const AddProductPage = () => {
                           onChange={handleInputChange}
                           required
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="e.g., anna nagar"
+                          placeholder="e.g.,2nd Floor, Prestige Tech Park
+Marathahalli–Sarjapur Outer Ring Road
+Bengaluru, Karnataka – 560103"
                         />
                       </div>
                     </div>
@@ -536,7 +544,7 @@ const AddProductPage = () => {
                     </div>
 
                     {/* Supplier & Barcode */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Supplier
@@ -564,10 +572,10 @@ const AddProductPage = () => {
                           placeholder="e.g., 123456789012"
                         />
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Stock Management */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Minimum Stock Level
@@ -613,10 +621,10 @@ const AddProductPage = () => {
                           <option value="inactive">Inactive</option>
                         </select>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Physical Properties */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Weight (kg)
@@ -651,7 +659,7 @@ const AddProductPage = () => {
                           placeholder="e.g., 10×5×2 cm"
                         />
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Right Column - Image Upload & Preview */}
@@ -662,7 +670,7 @@ const AddProductPage = () => {
                         <ImageIcon className="w-4 h-4 mr-2" />
                         Product Image
                       </h3>
-                      
+
                       <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors relative">
                         {imagePreview ? (
                           <div className="space-y-4">
@@ -708,7 +716,7 @@ const AddProductPage = () => {
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
                       </div>
-                      
+
                       <div className="mt-4 text-xs text-gray-500">
                         <p className="flex items-center mb-1">
                           <Info className="w-3 h-3 mr-1" />
@@ -837,7 +845,7 @@ const AddProductPage = () => {
                 Products added here will appear in your inventory and can be sold, tracked, and managed.
               </p>
             </div>
-            
+
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-center mb-2">
                 <BarChart3 className="w-5 h-5 text-green-600 mr-2" />
@@ -847,7 +855,7 @@ const AddProductPage = () => {
                 Set minimum and maximum stock levels to receive alerts and optimize inventory.
               </p>
             </div>
-            
+
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-center mb-2">
                 <ShoppingBag className="w-5 h-5 text-purple-600 mr-2" />

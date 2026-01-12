@@ -65,7 +65,7 @@ const Header = () => {
               </Button> */}
               {/* User Info */}
               <div className="px-3 py-3  flex flex-col items-start gap-1">
-                <p className="font-semibold text-gray-800">{user?.name}</p>
+            
                 <div className="flex items-center gap-2 mt-1">
                   <span className="relative flex h-3 w-3">
                     {/* Ping animation */}
@@ -75,9 +75,13 @@ const Header = () => {
                   </span>
                   <p className="text-gray-500 text-xs font-semibold">{user?.role?.toUpperCase()}</p>
                 </div>
+                    <p className="font-bold text-gray-900">{user?.name}</p>
+                {/* <p className="font-semibold text-gray-800">{user?.location}</p> */}
+                {/* <p className="font-semibold text-gray-800">{user?.email}</p> */}
+                {/* <p className="font-semibold text-gray-800">{user?.phone}</p> */}
               </div>
-
               <Profile />
+
             </div>
           </div>
         </Navbar>

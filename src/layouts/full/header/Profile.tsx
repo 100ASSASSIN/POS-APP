@@ -28,7 +28,7 @@ const Profile = () => {
         className="rounded-sm w-56"
         dismissOnClick={false}
         renderTrigger={() => (
-          <span className="h-10 w-10 rounded-full overflow-hidden flex justify-center items-center cursor-pointer hover:bg-lightprimary">
+          <span className="h-12 w-12 rounded-full overflow-hidden flex justify-center items-center cursor-pointer hover:bg-lightprimary">
             {user?.profile_image ? (
               <img
                 src={user.profile_image}
@@ -60,14 +60,14 @@ const Profile = () => {
         </div>
 
         {/* Menu Items */}
-        <Dropdown.Item
+        {/* <Dropdown.Item
           as={Link}
           to="#"
           className="px-3 py-3 flex items-center gap-3 text-dark"
         >
           <Icon icon="solar:user-circle-outline" height={20} />
           My Profile
-        </Dropdown.Item>
+        </Dropdown.Item> */}
         {/* <Dropdown.Item
           as={Link}
           to="#"
