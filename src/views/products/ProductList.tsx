@@ -40,6 +40,8 @@ import {
   Activity
 } from 'lucide-react';
 import api from '../../utils/services/axios';
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 // Define TypeScript interfaces
 interface Product {
@@ -922,7 +924,8 @@ const ProductListPage = () => {
   });
 
   // User role (for demo - you can get this from auth context)
-  const [currentUserRole] = useState<'admin' | 'manager' | 'staff'>('admin');
+  const { user } = useAuth();
+  const [currentUserRole] = useState<'admin' | 'manager' >(user.role);
 
   // Refs for handling click outside
   const actionsMenuRef = useRef<HTMLDivElement>(null);
@@ -1215,8 +1218,11 @@ const ProductListPage = () => {
     }
   };
 
+   const navigate = useNavigate();
+
   const handleAddProduct = () => {
     console.log('Add new product');
+    navigate("/products/create");
   };
 
   const handleRefresh = async () => {
@@ -1356,7 +1362,7 @@ const ProductListPage = () => {
                   Export
                 </button>
               </ProtectedComponent>
-              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+              <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
                 <button 
                   onClick={handleAddProduct}
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"

@@ -15,6 +15,10 @@ const Login = lazy(() => import("../views/auth/login/Login"));
 const Error = lazy(() => import("../views/auth/error/Error"));
 const AdminDashboard = lazy(() => import("../views/admin/dashboard/AdminDashboard"));
 const ManagerDashboard = lazy(() => import("../views/manager/dashboard/ManagerDashboard"));
+const AddProductPage = lazy(() => import("../views/products/AddProduct"));
+const CustomersList = lazy(() => import("../views/customers/CustomersList"));
+const Employees = lazy(() => import("../views/employees/Employees"));
+
 
 const Router = [
   {
@@ -41,12 +45,46 @@ const Router = [
         ),
       },
 
-            {
+      {
         path: "products",
         element: (
           <ProtectedRoute>
             <RoleGuard allowedRoles={["admin", "manager"]}>
               <ProductListPage />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+            {
+        path: "em-list",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["admin", "manager"]}>
+              <Employees />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "products/create",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["admin"]}>
+              <AddProductPage />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+
+      {
+        path: "customers",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["admin", "manager", "cashier"]}>
+              <CustomersList />
             </RoleGuard>
           </ProtectedRoute>
         ),

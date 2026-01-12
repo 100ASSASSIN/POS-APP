@@ -1,10 +1,10 @@
-import Home from "src/views/pos/pos";
+import PosApp from "src/views/pos/pos";
 
 
 const Dashboard = () => {
   return (
     <div>
-      <Home/>
+      <PosApp/>
   </div>
   )
 }
