@@ -757,7 +757,7 @@ const PosApp = () => {
   };
 
   return (
-    <div className="p-3 md:p-4 lg:p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 md:p-4 lg:p-6 bg-gray-50 min-h-screen max-w-full">
       {/* Header Section */}
       <div className="mb-4 md:mb-6 lg:mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
