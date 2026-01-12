@@ -16,7 +16,28 @@ import {
   ShoppingBag,
   Loader,
   X,
-  AlertCircle
+  AlertCircle,
+  DollarSign,
+  Hash,
+  Tag,
+  BarChart3,
+  Shield,
+  Save,
+  Upload as UploadIcon,
+  Image as ImageIcon,
+  CheckCircle,
+  User,
+  Calendar,
+  Clock,
+  Box,
+  TrendingUp,
+  TrendingDown,
+  Info,
+  Star,
+  ShoppingCart,
+  Layers,
+  BarChart,
+  Activity
 } from 'lucide-react';
 import api from '../../utils/services/axios';
 
@@ -25,15 +46,23 @@ interface Product {
   id: number;
   name: string;
   category: string;
+  category_id?: number;
   price: number;
   cost: number;
   stock: number;
   sku: string;
   barcode: string;
   image: string;
-  status: 'Active' | 'Inactive' | 'Low Stock';
+  product_image?: string;
+  status: 'Active' | 'Inactive' | 'Low Stock' | 'active' | 'inactive';
   lastUpdated: string;
   supplier?: string;
+  description?: string;
+  weight?: number;
+  dimensions?: string;
+  minimum_stock?: number;
+  maximum_stock?: number;
+  created_at?: string;
 }
 
 interface Category {
@@ -49,6 +78,810 @@ interface FilterOptions {
   stockLevel: 'all' | 'low' | 'out' | 'good';
 }
 
+// Role-based permission component
+interface ProtectedComponentProps {
+  children: React.ReactNode;
+  allowedRoles: string[];
+  currentRole?: string;
+}
+
+const ProtectedComponent: React.FC<ProtectedComponentProps> = ({ 
+  children, 
+  allowedRoles, 
+  currentRole = 'admin'
+}) => {
+  if (allowedRoles.includes(currentRole)) {
+    return <>{children}</>;
+  }
+  return null;
+};
+
+// Delete Confirmation Modal Component
+interface DeleteConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  itemCount?: number;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  itemCount = 1
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+        <div className="p-6">
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+              <p className="text-sm text-gray-600">
+                {itemCount > 1 ? `${itemCount} items selected` : 'This action cannot be undone'}
+              </p>
+            </div>
+          </div>
+          
+          <p className="text-gray-700 mb-6">{message}</p>
+          
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// View Product Details Modal Component
+interface ViewProductModalProps {
+  product: Product | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ViewProductModal: React.FC<ViewProductModalProps> = ({
+  product,
+  isOpen,
+  onClose
+}) => {
+  if (!isOpen || !product) return null;
+
+  const stats = [
+    {
+      label: 'Profit Margin',
+      value: `${(((product.price - product.cost) / product.cost) * 100).toFixed(1)}%`,
+      icon: TrendingUp,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    },
+    {
+      label: 'Stock Value',
+      value: `$${(product.price * product.stock).toLocaleString()}`,
+      icon: BarChart,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      label: 'Reorder Level',
+      value: product.minimum_stock ? `${product.minimum_stock} units` : 'Not Set',
+      icon: Activity,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50'
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center">
+            <Eye className="w-6 h-6 text-blue-600 mr-3" />
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Product Details</h2>
+              <p className="text-sm text-gray-600">View complete product information</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {/* Product Header */}
+            <div className="flex flex-col md:flex-row gap-6 mb-8">
+              <div className="md:w-2/5">
+                <div className="relative h-64 md:h-full rounded-xl overflow-hidden border border-gray-200">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/api/placeholder/400/300';
+                    }}
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      product.status === 'Active' || product.status === 'active' ? 'bg-green-100 text-green-800' :
+                      product.status === 'Inactive' || product.status === 'inactive' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {product.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="md:w-3/5">
+                <div className="mb-4">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                      {product.category}
+                    </span>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                      SKU: {product.sku}
+                    </span>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                      Barcode: {product.barcode}
+                    </span>
+                  </div>
+                  
+                  {product.description && (
+                    <p className="text-gray-600 mb-4">{product.description}</p>
+                  )}
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {stats.map((stat, index) => {
+                    const Icon = stat.icon;
+                    return (
+                      <div key={index} className={`${stat.bgColor} p-4 rounded-xl`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <Icon className={`w-5 h-5 ${stat.color}`} />
+                          <span className={`text-xs font-medium ${stat.color}`}>
+                            {stat.label}
+                          </span>
+                        </div>
+                        <p className="text-xl font-bold text-gray-800">{stat.value}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Price & Stock */}
+                <div className="bg-gray-50 rounded-xl p-5">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Selling Price</p>
+                      <p className="text-2xl font-bold text-gray-800">${product.price.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Cost Price</p>
+                      <p className="text-xl font-semibold text-gray-700">${product.cost.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Current Stock</p>
+                      <p className={`text-2xl font-bold ${
+                        product.stock === 0 ? 'text-red-600' :
+                        product.stock < 10 ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {product.stock} units
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Availability</p>
+                      <p className={`text-lg font-semibold ${
+                        product.stock === 0 ? 'text-red-600' :
+                        product.stock < 10 ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {product.stock === 0 ? 'Out of Stock' :
+                         product.stock < 10 ? 'Low Stock' :
+                         'In Stock'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detailed Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Product Details */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                  <Info className="w-5 h-5 mr-2 text-blue-600" />
+                  Product Details
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Supplier</span>
+                    <span className="font-medium">{product.supplier || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Weight</span>
+                    <span className="font-medium">{product.weight ? `${product.weight} kg` : 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Dimensions</span>
+                    <span className="font-medium">{product.dimensions || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Minimum Stock</span>
+                    <span className="font-medium">{product.minimum_stock || 'Not Set'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Maximum Stock</span>
+                    <span className="font-medium">{product.maximum_stock || 'Not Set'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                  <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                  Timeline
+                </h4>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Created</p>
+                      <p className="text-sm text-gray-600">
+                        {product.created_at ? new Date(product.created_at).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                      <RefreshCw className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Last Updated</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(product.lastUpdated).toLocaleDateString()} at{' '}
+                        {new Date(product.lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stock Analysis */}
+            <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <Activity className="w-5 h-5 mr-2 text-blue-600" />
+                Stock Analysis
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600 mb-1">
+                    {product.stock}
+                  </div>
+                  <div className="text-sm text-gray-600">Current Units</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600 mb-1">
+                    ${(product.price * product.stock).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Value</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-amber-600 mb-1">
+                    {product.minimum_stock ? 
+                      (product.stock <= product.minimum_stock ? 'Reorder Now' : 'OK') 
+                      : 'Not Set'}
+                  </div>
+                  <div className="text-sm text-gray-600">Stock Status</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-gray-200 bg-gray-50">
+          <div className="flex justify-between">
+            <div className="flex items-center text-sm text-gray-600">
+              <Package className="w-4 h-4 mr-2" />
+              Product ID: {product.id}
+            </div>
+            <button
+              onClick={onClose}
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Edit Product Modal Component
+interface EditProductModalProps {
+  product: Product | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (productId: number, formData: any) => Promise<void>;
+}
+
+const EditProductModal: React.FC<EditProductModalProps> = ({
+  product,
+  isOpen,
+  onClose,
+  onSave
+}) => {
+  const [formData, setFormData] = useState<any>({
+    name: '',
+    category_id: '',
+    price: '',
+    stock: '',
+    sku: '',
+    status: 'active',
+    product_image: null as File | null,
+    description: '',
+    supplier: '',
+    weight: '',
+    dimensions: '',
+    minimum_stock: '',
+    maximum_stock: ''
+  });
+  
+  const [categories] = useState([
+    { id: 1, name: 'Electronics' },
+    { id: 2, name: 'Clothing' },
+    { id: 3, name: 'Home & Kitchen' },
+    { id: 4, name: 'Books' },
+    { id: 5, name: 'Sports' },
+    { id: 6, name: 'Beauty' },
+    { id: 7, name: 'Toys' },
+    { id: 8, name: 'Food' }
+  ]);
+  
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize form when product changes
+  useEffect(() => {
+    if (product && isOpen) {
+      setFormData({
+        name: product.name || '',
+        category_id: product.category_id || categories.find(c => c.name === product.category)?.id || '',
+        price: product.price.toString() || '',
+        stock: product.stock.toString() || '',
+        sku: product.sku || '',
+        status: product.status === 'Active' ? 'active' : 
+                product.status === 'Inactive' ? 'inactive' : 
+                product.status === 'Low Stock' ? 'active' : 'active',
+        product_image: null,
+        description: product.description || '',
+        supplier: product.supplier || '',
+        weight: product.weight?.toString() || '',
+        dimensions: product.dimensions || '',
+        minimum_stock: product.minimum_stock?.toString() || '',
+        maximum_stock: product.maximum_stock?.toString() || ''
+      });
+      setImagePreview(product.image || product.product_image || '');
+      setError(null);
+    }
+  }, [product, isOpen]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev: any) => ({
+        ...prev,
+        product_image: file
+      }));
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!product) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const finalFormData = {
+        ...formData,
+        price: parseFloat(formData.price) || 0,
+        stock: parseInt(formData.stock) || 0,
+        category_id: parseInt(formData.category_id) || 0,
+        weight: formData.weight ? parseFloat(formData.weight) : null,
+        minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : null,
+        maximum_stock: formData.maximum_stock ? parseInt(formData.maximum_stock) : null
+      };
+      
+      await onSave(product.id, finalFormData);
+      setIsSubmitting(false);
+    } catch (error: any) {
+      setError(error.message || 'Failed to update product');
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen || !product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center">
+            <Edit className="w-6 h-6 text-blue-600 mr-3" />
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Edit Product</h2>
+              <p className="text-sm text-gray-600">Update product information</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
+                  <p className="text-red-700">{error}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter product name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category *
+                  </label>
+                  <select
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter product description"
+                  />
+                </div> */}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price ($) *
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <DollarSign className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        required
+                        min="0"
+                        step="0.01"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Stock Quantity *
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Hash className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        name="stock"
+                        value={formData.stock}
+                        onChange={handleInputChange}
+                        required
+                        min="0"
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Image
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors relative">
+                    {imagePreview ? (
+                      <div className="space-y-4">
+                        <div className="relative">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-48 object-cover rounded-lg mx-auto"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImagePreview('');
+                              setFormData((prev: any) => ({ ...prev, product_image: null }));
+                            }}
+                            className="absolute top-2 right-2 p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-200"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600">Click to change image</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <ImageIcon className="w-12 h-12 text-gray-400 mx-auto" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-1">
+                            Drop your image here, or click to browse
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Supports: JPG, PNG, WEBP, GIF (Max 5MB)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SKU *
+                    </label>
+                    <input
+                      type="text"
+                      name="sku"
+                      value={formData.sku}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter SKU"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status *
+                    </label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Supplier
+                    </label>
+                    <input
+                      type="text"
+                      name="supplier"
+                      value={formData.supplier}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Supplier name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Weight (kg)
+                    </label>
+                    <input
+                      type="number"
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      min="0"
+                      step="0.1"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="0.0"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dimensions (L×W×H)
+                </label>
+                <input
+                  type="text"
+                  name="dimensions"
+                  value={formData.dimensions}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., 10×5×2 cm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Minimum Stock
+                </label>
+                <input
+                  type="number"
+                  name="minimum_stock"
+                  value={formData.minimum_stock}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Maximum Stock
+                </label>
+                <input
+                  type="number"
+                  name="maximum_stock"
+                  value={formData.maximum_stock}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Main Product List Component
 const ProductListPage = () => {
   // State Management
   const [products, setProducts] = useState<Product[]>([]);
@@ -75,30 +908,76 @@ const ProductListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
+  // Modals
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    productId: null as number | null,
+    productName: '',
+    isBulk: false,
+    itemCount: 0
+  });
+
+  // User role (for demo - you can get this from auth context)
+  const [currentUserRole] = useState<'admin' | 'manager' | 'staff'>('admin');
+
   // Refs for handling click outside
   const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const accessToken = getCookie('access_token') || localStorage.getItem('access_token');
+    const apiKey = localStorage.getItem('api_key') || '9f8c2e7b1a6d4f0e8c5a3b9d7e2f4a6c1d0b5e9a8f7c3b2d6a4e1c9f8';
+
+    return {
+      'Accept': 'application/json',
+      'Origin': window.location.origin,
+      'x-api-key': apiKey,
+      ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+    };
+  };
 
   // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/products');
+        const response = await api.get('/products', {
+          headers: getAuthHeaders()
+        });
         
         if (response.data && response.data.products) {
           const transformedProducts: Product[] = response.data.products.map((product: any) => ({
             id: product.id,
             name: product.name,
             category: product.category?.name || 'Uncategorized',
+            category_id: product.category_id,
             price: parseFloat(product.price) || 0,
             cost: parseFloat(product.cost) || parseFloat(product.price) * 0.7,
             stock: product.stock || 0,
             sku: product.sku || `SKU-${product.id}`,
             barcode: product.barcode || product.sku || `BAR-${product.id}`,
             image: product.product_image || '/api/placeholder/400/300',
+            product_image: product.product_image,
             status: product.stock === 0 ? 'Inactive' : product.stock < 10 ? 'Low Stock' : 'Active',
             lastUpdated: product.updated_at || new Date().toISOString(),
-            supplier: product.supplier || 'N/A'
+            supplier: product.supplier || 'N/A',
+            description: product.description,
+            weight: product.weight,
+            dimensions: product.dimensions,
+            minimum_stock: product.minimum_stock,
+            maximum_stock: product.maximum_stock,
+            created_at: product.created_at
           }));
 
           setProducts(transformedProducts);
@@ -139,33 +1018,29 @@ const ProductListPage = () => {
   useEffect(() => {
     let result = products;
 
-    // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(product =>
         product.name.toLowerCase().includes(term) ||
         product.sku.toLowerCase().includes(term) ||
         product.barcode.toLowerCase().includes(term) ||
-        product.category.toLowerCase().includes(term)
+        product.category.toLowerCase().includes(term) ||
+        product.supplier?.toLowerCase().includes(term)
       );
     }
 
-    // Apply category filters
     if (filters.category.length > 0) {
       result = result.filter(product => filters.category.includes(product.category));
     }
 
-    // Apply status filters
     if (filters.status.length > 0) {
       result = result.filter(product => filters.status.includes(product.status));
     }
 
-    // Apply price range filter
     result = result.filter(product =>
       product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
     );
 
-    // Apply stock level filter
     if (filters.stockLevel !== 'all') {
       switch (filters.stockLevel) {
         case 'low':
@@ -181,14 +1056,13 @@ const ProductListPage = () => {
     }
 
     setFilteredProducts(result);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [products, searchTerm, filters]);
 
   // Close actions menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
-        // Close all action menus
         document.querySelectorAll('.actions-menu').forEach(menu => {
           (menu as HTMLElement).style.display = 'none';
         });
@@ -260,26 +1134,59 @@ const ProductListPage = () => {
   };
 
   const handleEditProduct = (product: Product) => {
-    console.log('Edit product:', product);
-    // Implement edit logic
-  };
-
-  const handleDeleteProduct = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await api.delete(`/products/${id}`);
-        setProducts(prev => prev.filter(p => p.id !== id));
-        setSelectedProducts(prev => prev.filter(productId => productId !== id));
-      } catch (err) {
-        console.error('Error deleting product:', err);
-        alert('Failed to delete product');
-      }
-    }
+    setEditingProduct(product);
+    setIsEditModalOpen(true);
   };
 
   const handleViewProduct = (product: Product) => {
-    console.log('View product:', product);
-    // Implement view logic
+    setViewingProduct(product);
+    setIsViewModalOpen(true);
+  };
+
+  const handleDeleteClick = (productId: number, productName: string) => {
+    setDeleteModal({
+      isOpen: true,
+      productId,
+      productName,
+      isBulk: false,
+      itemCount: 1
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    setDeleteModal({
+      isOpen: true,
+      productId: null,
+      productName: '',
+      isBulk: true,
+      itemCount: selectedProducts.length
+    });
+  };
+
+  const handleDeleteProduct = async (productId: number) => {
+    try {
+      await api.delete(`/products/${productId}`, {
+        headers: getAuthHeaders()
+      });
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      setSelectedProducts(prev => prev.filter(id => id !== productId));
+    } catch (err) {
+      console.error('Error deleting product:', err);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      for (const id of selectedProducts) {
+        await api.delete(`/products/${id}`, {
+          headers: getAuthHeaders()
+        });
+      }
+      setProducts(prev => prev.filter(p => !selectedProducts.includes(p.id)));
+      setSelectedProducts([]);
+    } catch (err) {
+      console.error('Error deleting products:', err);
+    }
   };
 
   const toggleActionsMenu = (productId: number, event: React.MouseEvent) => {
@@ -287,11 +1194,9 @@ const ProductListPage = () => {
     const menu = document.getElementById(`actions-menu-${productId}`);
     if (menu) {
       const isVisible = menu.style.display === 'block';
-      // Hide all other menus
       document.querySelectorAll('.actions-menu').forEach(m => {
         (m as HTMLElement).style.display = 'none';
       });
-      // Toggle current menu
       menu.style.display = isVisible ? 'none' : 'block';
     }
   };
@@ -299,18 +1204,12 @@ const ProductListPage = () => {
   const handleBulkAction = (action: 'delete' | 'export' | 'deactivate') => {
     switch (action) {
       case 'delete':
-        if (window.confirm(`Delete ${selectedProducts.length} selected products?`)) {
-          // Implement bulk delete
-          selectedProducts.forEach(id => handleDeleteProduct(id));
-          setSelectedProducts([]);
-        }
+        handleBulkDeleteClick();
         break;
       case 'export':
-        // Implement export logic
         console.log('Exporting products:', selectedProducts);
         break;
       case 'deactivate':
-        // Implement deactivate logic
         console.log('Deactivating products:', selectedProducts);
         break;
     }
@@ -318,27 +1217,37 @@ const ProductListPage = () => {
 
   const handleAddProduct = () => {
     console.log('Add new product');
-    // Implement add product logic
   };
 
   const handleRefresh = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/products');
+      const response = await api.get('/products', {
+        headers: getAuthHeaders()
+      });
+      
       if (response.data && response.data.products) {
         const transformedProducts: Product[] = response.data.products.map((product: any) => ({
           id: product.id,
           name: product.name,
           category: product.category?.name || 'Uncategorized',
+          category_id: product.category_id,
           price: parseFloat(product.price) || 0,
           cost: parseFloat(product.cost) || parseFloat(product.price) * 0.7,
           stock: product.stock || 0,
           sku: product.sku || `SKU-${product.id}`,
           barcode: product.barcode || product.sku || `BAR-${product.id}`,
           image: product.product_image || '/api/placeholder/400/300',
+          product_image: product.product_image,
           status: product.stock === 0 ? 'Inactive' : product.stock < 10 ? 'Low Stock' : 'Active',
           lastUpdated: product.updated_at || new Date().toISOString(),
-          supplier: product.supplier || 'N/A'
+          supplier: product.supplier || 'N/A',
+          description: product.description,
+          weight: product.weight,
+          dimensions: product.dimensions,
+          minimum_stock: product.minimum_stock,
+          maximum_stock: product.maximum_stock,
+          created_at: product.created_at
         }));
 
         setProducts(transformedProducts);
@@ -350,6 +1259,56 @@ const ProductListPage = () => {
       setError('Failed to refresh products');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProduct = async (productId: number, formData: any) => {
+    try {
+      // Create FormData for multipart/form-data
+      const formDataToSend = new FormData();
+      
+      // Add all form fields
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('category_id', formData.category_id.toString());
+      formDataToSend.append('price', formData.price.toString());
+      formDataToSend.append('stock', formData.stock.toString());
+      formDataToSend.append('sku', formData.sku);
+      formDataToSend.append('status', formData.status);
+      
+      // Add optional fields if they exist
+      if (formData.description) formDataToSend.append('description', formData.description);
+      if (formData.supplier) formDataToSend.append('supplier', formData.supplier);
+      if (formData.weight) formDataToSend.append('weight', formData.weight.toString());
+      if (formData.dimensions) formDataToSend.append('dimensions', formData.dimensions);
+      if (formData.minimum_stock) formDataToSend.append('minimum_stock', formData.minimum_stock.toString());
+      if (formData.maximum_stock) formDataToSend.append('maximum_stock', formData.maximum_stock.toString());
+      
+      // Add image if provided
+      if (formData.product_image instanceof File) {
+        formDataToSend.append('product_image', formData.product_image);
+      }
+
+      // Make the API call
+      const response = await api.post(`/products/${productId}`, formDataToSend, {
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.message) {
+        // Refresh the products list
+        await handleRefresh();
+        
+        setIsEditModalOpen(false);
+        setEditingProduct(null);
+      } else {
+        throw new Error(response.data?.message || 'Failed to update product');
+      }
+      
+    } catch (error: any) {
+      console.error('Error saving product:', error);
+      throw error;
     }
   };
 
@@ -375,25 +1334,37 @@ const ProductListPage = () => {
         <div className="px-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
+                <div className="flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  <User className="w-4 h-4 mr-2" />
+                  Role: {currentUserRole}
+                </div>
+              </div>
               <p className="text-gray-600 mt-1">Manage your product catalog and inventory</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button className="flex items-center px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
-                <Upload className="w-4 h-4 mr-2" />
-                Import
-              </button>
-              <button className="flex items-center px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </button>
-              <button 
-                onClick={handleAddProduct}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Product
-              </button>
+              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                <button className="flex items-center px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
+                  <UploadIcon className="w-4 h-4 mr-2" />
+                  Import
+                </button>
+              </ProtectedComponent>
+              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                <button className="flex items-center px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </button>
+              </ProtectedComponent>
+              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                <button 
+                  onClick={handleAddProduct}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </button>
+              </ProtectedComponent>
             </div>
           </div>
         </div>
@@ -528,7 +1499,6 @@ const ProductListPage = () => {
             {isFilterOpen && (
               <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Category Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                     <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
@@ -551,7 +1521,6 @@ const ProductListPage = () => {
                     </div>
                   </div>
 
-                  {/* Status Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <div className="space-y-2">
@@ -569,7 +1538,6 @@ const ProductListPage = () => {
                     </div>
                   </div>
 
-                  {/* Stock Level Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Stock Level</label>
                     <div className="space-y-2">
@@ -592,7 +1560,6 @@ const ProductListPage = () => {
                     </div>
                   </div>
 
-                  {/* Price Range Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
@@ -631,12 +1598,14 @@ const ProductListPage = () => {
                     {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} selected
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => handleBulkAction('delete')}
-                      className="px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 whitespace-nowrap"
-                    >
-                      Delete
-                    </button>
+                    <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
+                      <button
+                        onClick={() => handleBulkAction('delete')}
+                        className="px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 whitespace-nowrap"
+                      >
+                        Delete
+                      </button>
+                    </ProtectedComponent>
                     <button
                       onClick={() => handleBulkAction('export')}
                       className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 whitespace-nowrap"
@@ -692,12 +1661,14 @@ const ProductListPage = () => {
                     Clear all filters
                   </button>
                 ) : (
-                  <button
-                    onClick={handleAddProduct}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Add Your First Product
-                  </button>
+                  <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                    <button
+                      onClick={handleAddProduct}
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Add Your First Product
+                    </button>
+                  </ProtectedComponent>
                 )}
               </div>
             ) : viewMode === 'grid' ? (
@@ -757,20 +1728,24 @@ const ProductListPage = () => {
                                 <Eye className="w-4 h-4 mr-2" />
                                 View Details
                               </button>
-                              <button
-                                onClick={() => handleEditProduct(product)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                              >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(product.id)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 whitespace-nowrap"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </button>
+                              <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                                <button
+                                  onClick={() => handleEditProduct(product)}
+                                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit
+                                </button>
+                              </ProtectedComponent>
+                              <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
+                                <button
+                                  onClick={() => handleDeleteClick(product.id, product.name)}
+                                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 whitespace-nowrap"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete
+                                </button>
+                              </ProtectedComponent>
                             </div>
                           </div>
                         </div>
@@ -885,20 +1860,24 @@ const ProductListPage = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => handleEditProduct(product)}
-                              className="p-1 text-blue-400 hover:text-blue-600"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="p-1 text-red-400 hover:text-red-600"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <ProtectedComponent allowedRoles={['admin', 'manager']} currentRole={currentUserRole}>
+                              <button
+                                onClick={() => handleEditProduct(product)}
+                                className="p-1 text-blue-400 hover:text-blue-600"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            </ProtectedComponent>
+                            <ProtectedComponent allowedRoles={['admin']} currentRole={currentUserRole}>
+                              <button
+                                onClick={() => handleDeleteClick(product.id, product.name)}
+                                className="p-1 text-red-400 hover:text-red-600"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </ProtectedComponent>
                           </div>
                         </td>
                       </tr>
@@ -973,6 +1952,46 @@ const ProductListPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={() => {
+          if (deleteModal.isBulk) {
+            handleBulkDelete();
+          } else if (deleteModal.productId) {
+            handleDeleteProduct(deleteModal.productId);
+          }
+        }}
+        title={deleteModal.isBulk ? `Delete ${deleteModal.itemCount} Products` : `Delete "${deleteModal.productName}"`}
+        message={deleteModal.isBulk 
+          ? `Are you sure you want to delete ${deleteModal.itemCount} selected products? This action cannot be undone.`
+          : `Are you sure you want to delete this product? This action cannot be undone.`
+        }
+        itemCount={deleteModal.itemCount}
+      />
+
+      {/* View Product Modal */}
+      <ViewProductModal
+        product={viewingProduct}
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setViewingProduct(null);
+        }}
+      />
+
+      {/* Edit Product Modal */}
+      <EditProductModal
+        product={editingProduct}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingProduct(null);
+        }}
+        onSave={handleSaveProduct}
+      />
     </div>
   );
 };

@@ -68,7 +68,7 @@ const Profile = () => {
           <Icon icon="solar:user-circle-outline" height={20} />
           My Profile
         </Dropdown.Item>
-        <Dropdown.Item
+        {/* <Dropdown.Item
           as={Link}
           to="#"
           className="px-3 py-3 flex items-center gap-3 text-dark"
@@ -83,7 +83,7 @@ const Profile = () => {
         >
           <Icon icon="solar:checklist-linear" height={20} />
           My Task
-        </Dropdown.Item>
+        </Dropdown.Item> */}
 
         {/* Logout */}
         <div className="p-3 pt-0">

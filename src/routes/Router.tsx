@@ -14,6 +14,7 @@ const RootPath = lazy(() => import("../views/Rootpath"));
 const Login = lazy(() => import("../views/auth/login/Login"));
 const Error = lazy(() => import("../views/auth/error/Error"));
 const AdminDashboard = lazy(() => import("../views/admin/dashboard/AdminDashboard"));
+const ManagerDashboard = lazy(() => import("../views/manager/dashboard/ManagerDashboard"));
 
 const Router = [
   {
@@ -55,8 +56,8 @@ const Router = [
         path: "manager",
         element: (
           <ProtectedRoute>
-            <RoleGuard allowedRoles={["admin", "manager"]}>
-              <Dashboard />
+            <RoleGuard allowedRoles={["manager"]}>
+              <ManagerDashboard />
             </RoleGuard>
           </ProtectedRoute>
         ),
