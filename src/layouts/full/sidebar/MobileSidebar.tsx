@@ -5,7 +5,7 @@ import SimpleBar from "simplebar-react";
 import React, { useRef, useEffect, useState } from "react";
 import FullLogo from "../shared/logo/FullLogo";
 import { useSidebarMenu } from "../../../context/SidebarMenuContext";
-import 'simplebar-react/dist/simplebar.min.css';
+import "simplebar-react/dist/simplebar.min.css";
 
 const MobileSidebar = () => {
   const { menu: SidebarContent, loading } = useSidebarMenu();
@@ -19,8 +19,8 @@ const MobileSidebar = () => {
     };
 
     updateHeight();
-    window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
   if (loading || !SidebarContent) return null;
@@ -31,14 +31,17 @@ const MobileSidebar = () => {
         className="fixed menu-sidebar pt-0 bg-white dark:bg-darkgray transition-all"
         aria-label="Sidebar with multi-level dropdown example"
       >
-        <div ref={logoRef} className="px-5 py-4 pb-7 flex items-center sidebarlogo">
+        <div
+          ref={logoRef}
+          className="px-5 py-4 pb-7 flex items-center sidebarlogo"
+        >
           <FullLogo />
         </div>
 
         <SimpleBar style={{ maxHeight: scrollHeight }}>
           <Sidebar.Items className="px-5 mt-2">
             <Sidebar.ItemGroup className="sidebar-nav hide-menu">
-              {SidebarContent.map((item, index) => (
+              {SidebarContent.map((item: any, index: number) => (
                 <div className="caption" key={item.id ?? index}>
                   <React.Fragment>
                     {item.heading && (
@@ -46,18 +49,25 @@ const MobileSidebar = () => {
                         {item.heading}
                       </h5>
                     )}
-                    {item.children?.map((child) => (
-                      <React.Fragment key={child.id}>
-                        {child.children && child.children.length > 0 ? (
-                          <div className="collapse-items">
-                            {/* For nested items, you can reuse NavItems or create NavCollapse */}
-                            <NavItems item={child} />
-                          </div>
-                        ) : (
-                          <NavItems item={child} />
-                        )}
-                      </React.Fragment>
-                    ))}
+
+                    {item.children?.map((child: any) => {
+                      const navItem = {
+                        ...child,
+                        id: String(child.id),
+                      };
+
+                      return (
+                        <React.Fragment key={child.id}>
+                          {child.children && child.children.length > 0 ? (
+                            <div className="collapse-items">
+                              <NavItems item={navItem} />
+                            </div>
+                          ) : (
+                            <NavItems item={navItem} />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </React.Fragment>
                 </div>
               ))}

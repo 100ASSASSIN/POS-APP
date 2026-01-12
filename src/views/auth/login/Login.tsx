@@ -1,7 +1,6 @@
 
 import FullLogo from "src/layouts/full/shared/logo/FullLogo";
 import AuthLogin from "../authforms/AuthLogin";
-import { Link } from "react-router";
 
 const gradientStyle = {
   background: "linear-gradient(45deg, rgb(238, 119, 82,0.2), rgb(231, 60, 126,0.2), rgb(35, 166, 213,0.2), rgb(35, 213, 171,0.2))",
@@ -22,18 +21,10 @@ const Login = () => {
             <p className="text-sm text-center text-dark my-3 font-semibold">
               Sign In on POS
             </p>
-
-
             <AuthLogin />
             <p className="text-xs text-center text-gray-500 mb-4">
               Please enter your email and password to access your Point of Sale dashboard. Make sure your credentials are correct.
             </p>
-            {/* <div className="flex gap-2 text-base text-ld font-medium mt-6 items-center justify-center">
-              <p>New to Matdash?</p>
-              <Link to="/auth/register" className="text-primary text-sm font-medium">
-                Create an account
-              </Link>
-            </div> */}
           </div>
         </div>
       </div>

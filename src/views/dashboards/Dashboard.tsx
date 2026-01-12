@@ -1,4 +1,4 @@
-import Home from "src/views/home/Home";
+import Home from "src/views/pos/pos";
 
 
 const Dashboard = () => {

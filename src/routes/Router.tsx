@@ -6,6 +6,7 @@ import RoleGuard from "./RoleGuard";
 /* Layouts */
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 const BlankLayout = lazy(() => import("../layouts/blank/BlankLayout"));
+const ProductListPage = lazy(() => import("../views/products/ProductList"));
 
 /* Pages */
 const Dashboard = lazy(() => import("../views/dashboards/Dashboard"));
@@ -33,6 +34,17 @@ const Router = [
           <ProtectedRoute>
             <RoleGuard allowedRoles={["admin"]}>
               <Dashboard />
+            </RoleGuard>
+          </ProtectedRoute>
+        ),
+      },
+
+            {
+        path: "products",
+        element: (
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={["admin", "manager"]}>
+              <ProductListPage />
             </RoleGuard>
           </ProtectedRoute>
         ),
