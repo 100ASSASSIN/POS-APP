@@ -1,6 +1,6 @@
 import { Button, Dropdown } from "flowbite-react";
-import { Icon } from "@iconify/react";
-import { Link, useNavigate } from "react-router-dom";
+// import { Icon } from "@iconify/react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import api from "../../../utils/services/axios";
 import { LogOut } from "lucide-react";

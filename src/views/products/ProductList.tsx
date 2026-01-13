@@ -9,7 +9,7 @@ import {
   Edit, 
   Trash2, 
   Eye, 
-  Download, 
+  // Download, 
   RefreshCw,
   Package,
   ShoppingBag,
@@ -1184,6 +1184,8 @@ const ProductListPage = () => {
       menu.style.display = isVisible ? 'none' : 'block';
     }
   };
+
+  console.log(toggleActionsMenu);
 
   const handleBulkAction = (action: 'delete' | 'export' | 'deactivate') => {
     switch (action) {

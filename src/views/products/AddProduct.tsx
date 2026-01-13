@@ -14,7 +14,7 @@ import {
   Loader,
   X,
   //   Layers,
-  Scale,
+  // Scale,
   Box,
   ClipboardCheck,
   Info,
